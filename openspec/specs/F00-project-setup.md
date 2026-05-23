@@ -34,7 +34,7 @@ As the engineer about to implement F01–F11, I want a clean, conventional proje
 
 ### Toolchain & build
 
-- The project builds on JDK 17 (or later LTS) declared via Gradle toolchains, not inherited from the developer's environment.
+- The project builds on JDK 25 (or later LTS) declared via Gradle toolchains, not inherited from the developer's environment.
 - A single root Gradle build script (Kotlin DSL) drives the whole project. Module-level build scripts contain only what is specific to that module.
 - A fresh checkout builds with one command (`./gradlew build`) and no IDE setup.
 - Recent stable Spring Boot 3.x. Dependency management delegated to the Spring Boot BOM; ad-hoc version pinning forbidden unless overriding the BOM.

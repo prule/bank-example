@@ -13,7 +13,7 @@ project:
     AI tooling, prompting styles, and engineering disciplines on the same
     problem.
   language: java
-  jdk: "17"
+  jdk: "25"
   framework: spring-boot
   framework_version: "3.3.x"
   build: gradle-kotlin
