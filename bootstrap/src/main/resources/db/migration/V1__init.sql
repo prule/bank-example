@@ -1,0 +1,2 @@
+-- F00 placeholder migration.
+-- Real schema arrives with F01 (accounts) and F02 (journal/ledger) as V2, V3.

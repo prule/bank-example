@@ -1,4 +1,16 @@
 build/
-.idea
-.gradle
+.idea/
+.gradle/
 *.zip
+
+# macOS
+.DS_Store
+
+# IDE state
+*.iml
+out/
+.vscode/
+
+# Local logs
+*.log
+HELP.md

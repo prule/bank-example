@@ -1,0 +1,11 @@
+spring:
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+
+bank-core:
+  h2:
+    tcp-server:
+      enabled: false
+      port: 9092
