@@ -19,4 +19,5 @@
   * Had trouble using Gradle since 8.12 was installed and wasn't working with Java 25. It used 21 to run Gradle.
     * It would have been better if I'd upgraded Gradle beforehand.
 * Should have said to always use latest versions of libraries - it didn't always do that because of the requirements (spring boot, archunit, gradle) - should check requirements don't specify versions and just refer to latest.
+* Asked Claude to convert all the specs now
 * 

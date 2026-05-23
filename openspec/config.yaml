@@ -84,10 +84,13 @@ core_concepts:
     realised_by: [F10, F11]
 
 # Per-feature specs. Each is independently buildable; depends_on must ship first.
+# The F-IDs below are historical labels carried forward from the original specs;
+# `path:` now points at the OpenSpec-format capability folder. Legacy F##-*.md
+# drafts are preserved under specs/legacy/ for reference.
 specs:
   - id: F00
     title: Project setup
-    path: specs/F00-project-setup.md
+    path: specs/project-setup/spec.md
     category: foundation
     depends_on: []
     delivers:
@@ -100,7 +103,7 @@ specs:
 
   - id: F01
     title: Account domain rules
-    path: specs/F01-account-domain.md
+    path: specs/account-domain/spec.md
     category: foundation
     depends_on: [F00]
     delivers:
@@ -110,7 +113,7 @@ specs:
 
   - id: F02
     title: Immutable ledger
-    path: specs/F02-immutable-ledger.md
+    path: specs/immutable-ledger/spec.md
     category: foundation
     depends_on: [F00]
     delivers:
@@ -120,7 +123,7 @@ specs:
 
   - id: F03
     title: API error contract
-    path: specs/F03-api-error-contract.md
+    path: specs/api-error-contract/spec.md
     category: foundation
     depends_on: [F00, F04]
     delivers:
@@ -130,7 +133,7 @@ specs:
 
   - id: F04
     title: Contract-first API
-    path: specs/F04-contract-first-api.md
+    path: specs/contract-first-api/spec.md
     category: foundation
     depends_on: [F00]
     delivers:
@@ -141,7 +144,7 @@ specs:
 
   - id: F05
     title: Account lookup API
-    path: specs/F05-account-lookup.md
+    path: specs/account-lookup/spec.md
     category: capability
     depends_on: [F00, F01, F03, F04]
     delivers:
@@ -150,7 +153,7 @@ specs:
 
   - id: F06
     title: Fund transfer API
-    path: specs/F06-fund-transfer.md
+    path: specs/fund-transfer/spec.md
     category: capability
     depends_on: [F00, F01, F02, F03, F04, F07]
     delivers:
@@ -160,7 +163,7 @@ specs:
 
   - id: F07
     title: Deadlock-free concurrent transfers
-    path: specs/F07-deadlock-free-locking.md
+    path: specs/transfer-locking/spec.md
     category: capability
     depends_on: [F00, F01]
     delivers:
@@ -170,7 +173,7 @@ specs:
 
   - id: F08
     title: Account opening
-    path: specs/F08-account-opening.md
+    path: specs/account-opening/spec.md
     category: capability
     depends_on: [F00, F01, F02, F06]
     delivers:
@@ -180,7 +183,7 @@ specs:
 
   - id: F09
     title: Dev data seeding
-    path: specs/F09-dev-data-seeding.md
+    path: specs/dev-data-seeding/spec.md
     category: capability
     depends_on: [F00, F08]
     delivers:
@@ -190,7 +193,7 @@ specs:
 
   - id: F10
     title: Pending journal reconciliation
-    path: specs/F10-journal-verification-sweep.md
+    path: specs/journal-verification/spec.md
     category: audit
     depends_on: [F00, F02]
     delivers:
@@ -200,7 +203,7 @@ specs:
 
   - id: F11
     title: Balance drift detection
-    path: specs/F11-balance-drift-detection.md
+    path: specs/balance-drift-detection/spec.md
     category: audit
     depends_on: [F00, F01, F02, F06]
     delivers:
