@@ -1,0 +1,15 @@
+openapi: 3.0.3
+info:
+  title: Bank Core API
+  version: 1.0.0
+  description: Contract-first specification for the Bank Core Ledger platform.
+
+servers:
+  - url: http://localhost:8080
+    description: Local Development Server
+
+paths:
+  /api/v1/accounts/{accountNumber}:
+    $ref: './paths/accounts.yaml'
+  /api/v1/transfers:
+    $ref: './paths/transfers.yaml'

@@ -1,0 +1,27 @@
+app:
+  features:
+    # Looks for an environment variable named SEED_DATA. Defaults to true because we are just developing.
+    seed-data: ${SEED_DATA:false}
+
+debug: false
+
+spring:
+  application:
+    name: bank-core
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false       # Prints SQL statements to the terminal for easy debugging
+    properties:
+      hibernate:
+        format_sql: true
+
+springdoc:
+  # 1. Disable the dynamic Java/Kotlin class scanner
+  api-docs:
+    enabled: true
+  # 2. Force Swagger-UI to read your master contract specification artifact instead of scanned code
+  swagger-ui:
+    url: /openapi/openapi.yaml
+    disable-swagger-default-url: true

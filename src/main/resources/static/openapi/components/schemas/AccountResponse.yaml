@@ -1,0 +1,17 @@
+type: object
+required:
+  - accountNumber
+  - balance
+  - status
+properties:
+  accountNumber:
+    type: string
+    example: "ACC-12345"
+  balance:
+    type: number
+    format: double
+    example: 1000.50
+  status:
+    type: string
+    enum: [ ACTIVE, SUSPENDED ]
+    example: "ACTIVE"

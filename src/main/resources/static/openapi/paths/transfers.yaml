@@ -1,0 +1,27 @@
+post:
+  summary: Execute a fund transfer
+  operationId: transferFunds
+  tags:
+    - Transfers # This forces the generation of TransfersApi.java
+  description: Safely and atomically transfers money between two active bank accounts.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../components/schemas/TransferRequest.yaml'
+  responses:
+    '204':
+      description: Transfer executed successfully. No content returned.
+    '400':
+      description: Invalid request payload, inactive account, or insufficient funds.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ErrorResponse.yaml'
+    '404':
+      description: Source or destination account not found.
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/ErrorResponse.yaml'

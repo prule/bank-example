@@ -1,0 +1,22 @@
+get:
+  summary: Retrieve an account by its unique account number
+  operationId: getAccountByNumber
+  tags:
+    - Accounts # This forces the generation of AccountsApi.java
+  parameters:
+    - name: accountNumber
+      in: path
+      required: true
+      description: The unique string identifier of the target bank account
+      schema:
+        type: string
+        example: "ACC-1111"
+  responses:
+    '200':
+      description: Account details successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: '../components/schemas/AccountResponse.yaml'
+    '404':
+      description: Target account record could not be found

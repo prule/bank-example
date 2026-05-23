@@ -1,0 +1,20 @@
+type: object
+required:
+  - sourceAccountNumber
+  - destinationAccountNumber
+  - amount
+properties:
+  sourceAccountNumber:
+    type: string
+    example: "ACC-1111"
+    description: The unique identifier of the debited account.
+  destinationAccountNumber:
+    type: string
+    example: "ACC-2222"
+    description: The unique identifier of the credited account.
+  amount:
+    type: number
+    format: double
+    minimum: 0.01
+    example: 150.00
+    description: The total amount of currency to transfer. Must be positive.

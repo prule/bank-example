@@ -1,0 +1,18 @@
+type: object
+required:
+  - code
+  - message
+  - timestamp
+properties:
+  code:
+    type: string
+    example: "INSUFFICIENT_FUNDS"
+    description: A specific, stable error code for client-side programmatic parsing.
+  message:
+    type: string
+    example: "Insufficient funds for this debit operation."
+    description: A human-readable message detailing the failure context.
+  timestamp:
+    type: string
+    format: date-time
+    example: "2026-05-18T19:20:00Z"

@@ -1,0 +1,23 @@
+app:
+  features:
+    # Looks for an environment variable named SEED_DATA. Defaults to true because we are just developing.
+    seed-data: ${SEED_DATA:true}
+    # Will verify journals as they are created via eventing, leaving the scheduled verify as a backup/catchall.
+    ledger-immediate-verify: true
+
+spring:
+  datasource:
+    url: jdbc:h2:tcp://localhost:9092/~/bank_core_dev
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+  h2:
+    console:
+      enabled: true      # Enables the web UI at http://localhost:8080/h2-console
+      path: /h2-console
+      settings:
+        web-allow-others: false
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
