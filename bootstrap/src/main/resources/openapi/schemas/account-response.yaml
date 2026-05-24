@@ -1,0 +1,28 @@
+type: object
+description: >
+  Snapshot of a single account returned by GET /api/v1/accounts/{accountNumber}.
+  Balance is serialised as a string to preserve the domain's 2-decimal scale
+  invariant (JSON numbers strip trailing zeros on most clients). Status is the
+  uppercase value of the domain AccountStatus enum.
+required:
+  - accountNumber
+  - balance
+  - status
+properties:
+  accountNumber:
+    type: string
+    description: External, human-readable account identifier.
+    example: "ACC-0001"
+  balance:
+    type: string
+    description: Current balance, formatted with exactly two fraction digits.
+    pattern: "^\\d+\\.\\d{2}$"
+    example: "100.00"
+  status:
+    type: string
+    description: Lifecycle status of the account.
+    enum:
+      - ACTIVE
+      - SUSPENDED
+      - CLOSED
+    example: ACTIVE

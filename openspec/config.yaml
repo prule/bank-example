@@ -276,6 +276,12 @@ open_decisions:
     question: >
       OpenAPI account-status enum omits CLOSED. Widen schema, or guarantee
       closed accounts never returned?
+    resolution: >
+      Closed by F05. The OpenAPI AccountResponse.status enum widens to
+      [ACTIVE, SUSPENDED, CLOSED], matching the closed set of values in
+      com.bank.core.domain.AccountStatus. The mapper is a direct name()
+      translation with no special-casing.
+    closed: true
   - id: idempotency
     where: F06
     question: >

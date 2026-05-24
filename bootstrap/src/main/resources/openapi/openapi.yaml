@@ -16,10 +16,16 @@ servers:
 tags:
   - name: openapi
     description: Operations on the API contract itself.
+  - name: accounts
+    description: Read and (in later capabilities) mutate customer accounts.
 paths:
   /v3/api-docs:
     $ref: "./paths/api-docs.yaml"
+  /api/v1/accounts/{accountNumber}:
+    $ref: "./paths/accounts.yaml"
 components:
   schemas:
     ErrorEnvelope:
       $ref: "./schemas/error-envelope.yaml"
+    AccountResponse:
+      $ref: "./schemas/account-response.yaml"

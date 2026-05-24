@@ -9,10 +9,16 @@ import java.util.Objects;
  * {@link #reactivate()}. Identity comparison is by reference within a single
  * transaction; cross-transaction comparison uses {@code id().equals(...)}.
  *
+ * <p>{@link #rehydrate(AccountId, AccountNumber, Money, AccountStatus)} is the
+ * persistence-only constructor used by
+ * {@code com.bank.core.infrastructure.persistence.account.AccountMapper} when
+ * loading a row from the {@code account} table. Application code,
+ * controllers, schedulers, and use cases MUST NOT call {@code rehydrate(...)}
+ * — they create accounts with {@link #open(AccountNumber, Money)} and load
+ * existing ones through the {@code Accounts} port.
+ *
  * Forward-compatibility notes:
  * <ul>
- *   <li>F02 (immutable ledger) will add a package-private constructor for
- *       persistence rehydration, accepting status as a parameter.</li>
  *   <li>F06 (fund transfer) will call {@code debit}/{@code credit} from a
  *       use-case in {@code application}, inside the locking strategy from F07.</li>
  *   <li>F11 (balance drift detection) will call {@link #suspend()} when
@@ -37,6 +43,24 @@ public final class Account {
         Objects.requireNonNull(number, "account number cannot be null");
         Objects.requireNonNull(openingBalance, "opening balance cannot be null");
         return new Account(AccountId.generate(), number, openingBalance, AccountStatus.ACTIVE);
+    }
+
+    /**
+     * Persistence-only factory used by the JPA mapper to reconstruct an
+     * aggregate from a persisted row. Bypasses {@link #open(AccountNumber, Money)}'s
+     * id-minting and forced-ACTIVE invariants because those represent business
+     * creation, not state restoration. See class-level Javadoc — application
+     * code MUST NOT call this.
+     */
+    public static Account rehydrate(AccountId id,
+                                    AccountNumber number,
+                                    Money balance,
+                                    AccountStatus status) {
+        Objects.requireNonNull(id, "id cannot be null");
+        Objects.requireNonNull(number, "number cannot be null");
+        Objects.requireNonNull(balance, "balance cannot be null");
+        Objects.requireNonNull(status, "status cannot be null");
+        return new Account(id, number, balance, status);
     }
 
     public AccountId id() {

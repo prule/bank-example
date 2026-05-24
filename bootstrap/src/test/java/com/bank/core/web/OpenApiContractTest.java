@@ -1,6 +1,7 @@
 package com.bank.core.web;
 
 import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.parser.OpenAPIV3Parser;
 import io.swagger.v3.parser.core.models.ParseOptions;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,46 @@ class OpenApiContractTest {
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
         assertThat(response.getBody()).contains("\"openapi\"").contains("ErrorEnvelope");
+    }
+
+    @Test
+    void servedDocumentDeclaresLookupAccountOperation() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = parse(response.getBody());
+
+        Object pathItem = fromController.getPaths().get("/api/v1/accounts/{accountNumber}");
+        assertThat(pathItem)
+                .as("served document must declare GET /api/v1/accounts/{accountNumber}")
+                .isNotNull();
+        assertThat(fromController.getPaths().get("/api/v1/accounts/{accountNumber}").getGet().getOperationId())
+                .isEqualTo("lookupAccount");
+    }
+
+    @Test
+    void servedDocumentDeclaresAccountResponseSchemaWithAllThreeStatuses() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = parse(response.getBody());
+
+        Schema<?> accountResponse = fromController.getComponents().getSchemas().get("AccountResponse");
+        assertThat(accountResponse)
+                .as("served document must declare AccountResponse schema")
+                .isNotNull();
+
+        Schema<?> status = (Schema<?>) accountResponse.getProperties().get("status");
+        assertThat(status).isNotNull();
+        java.util.List<String> values = status.getEnum().stream()
+                .map(Object::toString)
+                .toList();
+        assertThat(values)
+                .as("status enum must include all three returnable statuses")
+                .containsExactlyInAnyOrder("ACTIVE", "SUSPENDED", "CLOSED");
+    }
+
+    private static OpenAPI parse(String body) {
+        ParseOptions options = new ParseOptions();
+        options.setResolve(true);
+        options.setResolveFully(true);
+        return new OpenAPIV3Parser().readContents(body, null, options).getOpenAPI();
     }
 
     @Test

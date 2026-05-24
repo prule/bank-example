@@ -1,0 +1,30 @@
+get:
+  tags:
+    - accounts
+  operationId: lookupAccount
+  summary: Look up a single account by its external account number
+  description: >
+    Returns the current balance and status of the account identified by
+    accountNumber. Read-only — no balance change, no journal entry, no
+    cached value that could diverge from the committed state.
+  parameters:
+    - name: accountNumber
+      in: path
+      required: true
+      description: External account identifier.
+      schema:
+        type: string
+        minLength: 1
+  responses:
+    "200":
+      description: Account snapshot
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/account-response.yaml"
+    "404":
+      description: No account with this number exists
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/error-envelope.yaml"

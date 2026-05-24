@@ -1,5 +1,6 @@
 package com.bank.core.infrastructure.web.error;
 
+import com.bank.core.domain.ResourceNotFoundException;
 import com.bank.core.dto.ErrorEnvelope;
 import com.bank.core.dto.ErrorEnvelope.CodeEnum;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,11 +36,15 @@ import java.util.stream.Collectors;
  * <ul>
  *   <li>{@code InsufficientFundsException} (F01 / F06) → 400 {@code INSUFFICIENT_FUNDS}</li>
  *   <li>{@code AccountInactiveException}    (F01 / F06) → 400 {@code ACCOUNT_INACTIVE}</li>
- *   <li>{@code ResourceNotFoundException}   (F05)       → 404 {@code RESOURCE_NOT_FOUND}</li>
  * </ul>
  * Those exception types do not yet exist on this branch; do not add stub
  * handlers referencing them — that breaks compilation. Add the entries when
  * the corresponding capability lands.
+ *
+ * F05 wired {@link ResourceNotFoundException} → 404 {@code RESOURCE_NOT_FOUND};
+ * any new capability that surfaces a "missing X" condition can throw the same
+ * {@link ResourceNotFoundException} (with its own {@code resourceType}) and
+ * reuse the existing handler entry — no per-resource handler is needed.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -77,6 +82,15 @@ public class GlobalExceptionHandler {
         log.info("{}", message);
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(envelope(CodeEnum.RESOURCE_NOT_FOUND, message));
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorEnvelope> handleResourceNotFound(ResourceNotFoundException ex,
+                                                                 HttpServletRequest request) {
+        log.info("Resource lookup miss: {} '{}' on {} {}",
+                ex.resourceType(), ex.identifier(), request.getMethod(), request.getRequestURI());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(envelope(CodeEnum.RESOURCE_NOT_FOUND, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)
