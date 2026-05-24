@@ -29,7 +29,11 @@
 * propose/apply/archive immutable-ledger
 * Interesting that `transfer-locking` didn't have db tables at that time so implemented locking without db. Perhaps should break down differently to get db set up earlier.
 
+...
 
-
+* propose/apply/archive dev-data-seeding
+  * Needed to prompt:
+    * the openapi example parameters should match the seeded data
+  * Manually checked and marked the 3 outstanding tasks in tasks.md as completed.
 
 
