@@ -59,3 +59,15 @@ bank:
     # SEED_DATA=true. The default is intentionally human-recognisable so
     # operators inspecting `account` immediately spot the system row.
     number: CLEARING-000
+  # F09 dev-data seeding. Production-safe default: disabled.
+  #
+  # * Switch alias: SEED_DATA=true is mapped onto bank.seed.enabled=true by
+  #   SeedDataEnvironmentPostProcessor with LOW precedence — any explicit
+  #   value here, in application-<profile>.yaml, on the command line, or
+  #   via BANK_SEED_ENABLED wins over the alias.
+  # * The `dev` profile overrides this block to enable=true with a populated
+  #   customer plan; see application-dev.yaml for the canonical example.
+  # * Tests opt in per-class via @SpringBootTest(properties = {...}); they do
+  #   NOT inherit any seed defaults from this profile.
+  seed:
+    enabled: false

@@ -24,3 +24,20 @@ springdoc:
     path: /swagger-ui.html
     url: /v3/api-docs
     disable-swagger-default-url: true
+
+# F09 dev seed under the `dev` profile. Three intentional customer shapes so
+# a developer can exercise every F08 path without editing config:
+#   * CUST-1001 — large funded open (exercises happy-path transfer).
+#   * CUST-1002 — small funded open.
+#   * CUST-1003 — zero-balance open (exercises F08's no-journal path).
+bank:
+  seed:
+    enabled: true
+    clearingAccountOpeningBalance: 100000.00
+    customers:
+      - number: CUST-1001
+        openingBalance: 500.00
+      - number: CUST-1002
+        openingBalance: 250.00
+      - number: CUST-1003
+        openingBalance: 0.00
