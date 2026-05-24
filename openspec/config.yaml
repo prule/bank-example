@@ -290,6 +290,13 @@ open_decisions:
   - id: self-transfer
     where: F06
     question: Reject source == destination, or allow as no-op?
+    resolution: >
+      Closed by F06. Reject as 400 BAD_REQUEST_PAYLOAD via the new
+      SameAccountTransferException (domain). Consistent with most banking
+      APIs and avoids ambiguous no-op semantics (a no-op would either
+      produce a self-debit/self-credit journal, which is semantically odd,
+      or silently skip the journal, which creates an audit gap).
+    closed: true
   - id: lock-wait-timeout
     where: F07
     question: Bound for transfer lock wait under contention?

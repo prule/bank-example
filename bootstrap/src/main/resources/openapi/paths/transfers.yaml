@@ -1,0 +1,36 @@
+post:
+  tags:
+    - transfers
+  operationId: createTransfer
+  summary: Transfer funds from one account to another
+  description: >
+    Atomically debits the source account, credits the destination account,
+    and records exactly one balanced journal entry with status PENDING.
+    Either all effects commit or none do. Callers re-read the affected
+    accounts via GET /api/v1/accounts/{accountNumber} for the new balances.
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: "../schemas/transfer-request.yaml"
+  responses:
+    "204":
+      description: Transfer accepted; no response body.
+    "400":
+      description: >
+        Validation or business-rule rejection. Body's `code` identifies
+        the cause: BAD_REQUEST_PAYLOAD (malformed/missing fields, non-positive
+        amount, or same-account transfer), ACCOUNT_INACTIVE (source or
+        destination is not Active), or INSUFFICIENT_FUNDS (source would be
+        overdrawn).
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/error-envelope.yaml"
+    "404":
+      description: Source or destination account does not exist.
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/error-envelope.yaml"

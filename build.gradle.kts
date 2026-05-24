@@ -31,6 +31,10 @@ subprojects {
 
     tasks.withType<Test>().configureEach {
         useJUnitPlatform()
+        // Java 25 is newer than the bundled ByteBuddy supports; opt in to
+        // experimental class-file parsing so Mockito's inline mock maker
+        // can instrument JDK 25 classes (Mockito tracks this in #3492).
+        systemProperty("net.bytebuddy.experimental", "true")
     }
 
     tasks.withType<JavaCompile>().configureEach {

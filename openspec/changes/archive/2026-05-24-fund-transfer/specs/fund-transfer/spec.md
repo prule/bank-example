@@ -1,10 +1,4 @@
-# Fund Transfer
-
-## Purpose
-
-Endpoint that moves a positive amount of money from one Active account to another Active account atomically, producing exactly one balanced journal entry. Either the transfer commits in full or has no observable effect. Composes F05 (`Accounts`), F02 (`JournalEntries`), and F07 (`AccountLocker`) inside a single transactional boundary that lives on the controller.
-
-## Requirements
+## ADDED Requirements
 
 ### Requirement: POST endpoint accepts source, destination, amount
 

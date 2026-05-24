@@ -61,6 +61,32 @@ class OpenApiContractTest {
     }
 
     @Test
+    void servedDocumentDeclaresCreateTransferOperation() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = parse(response.getBody());
+
+        Object pathItem = fromController.getPaths().get("/api/v1/transfers");
+        assertThat(pathItem)
+                .as("served document must declare POST /api/v1/transfers")
+                .isNotNull();
+        assertThat(fromController.getPaths().get("/api/v1/transfers").getPost().getOperationId())
+                .isEqualTo("createTransfer");
+    }
+
+    @Test
+    void servedDocumentDeclaresTransferRequestSchemaWithRequiredFields() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = parse(response.getBody());
+
+        Schema<?> transferRequest = fromController.getComponents().getSchemas().get("TransferRequest");
+        assertThat(transferRequest)
+                .as("served document must declare TransferRequest schema")
+                .isNotNull();
+        assertThat(transferRequest.getRequired())
+                .containsExactlyInAnyOrder("sourceAccountNumber", "destinationAccountNumber", "amount");
+    }
+
+    @Test
     void servedDocumentDeclaresAccountResponseSchemaWithAllThreeStatuses() {
         ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
         OpenAPI fromController = parse(response.getBody());

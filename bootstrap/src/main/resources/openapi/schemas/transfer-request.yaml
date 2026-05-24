@@ -1,0 +1,28 @@
+type: object
+description: >
+  Request body for POST /api/v1/transfers. Moves the requested amount from
+  the source account to the destination account in a single atomic transaction.
+  Source and destination must differ; both accounts must be Active; source
+  must have sufficient funds.
+required:
+  - sourceAccountNumber
+  - destinationAccountNumber
+  - amount
+properties:
+  sourceAccountNumber:
+    type: string
+    description: External identifier of the account being debited.
+    minLength: 1
+    example: "ACC-001"
+  destinationAccountNumber:
+    type: string
+    description: External identifier of the account being credited.
+    minLength: 1
+    example: "ACC-002"
+  amount:
+    type: number
+    description: >
+      Positive amount to transfer. Precision beyond two decimal places is
+      rounded half-up to two decimals by the domain Money type.
+    minimum: 0.01
+    example: 25.00

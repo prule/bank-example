@@ -1,6 +1,10 @@
 package com.bank.core.infrastructure.web.error;
 
+import com.bank.core.domain.AccountInactiveException;
+import com.bank.core.domain.InsufficientFundsException;
+import com.bank.core.domain.InvalidAmountException;
 import com.bank.core.domain.ResourceNotFoundException;
+import com.bank.core.domain.SameAccountTransferException;
 import com.bank.core.dto.ErrorEnvelope;
 import com.bank.core.dto.ErrorEnvelope.CodeEnum;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,20 +35,23 @@ import java.util.stream.Collectors;
  * defined by the api-error-contract capability. Every {@code 4xx}/{@code 5xx}
  * response from this service flows through here.
  *
- * Future capabilities that introduce domain exceptions extend this class with
- * one new {@code @ExceptionHandler} method each:
- * <ul>
- *   <li>{@code InsufficientFundsException} (F01 / F06) → 400 {@code INSUFFICIENT_FUNDS}</li>
- *   <li>{@code AccountInactiveException}    (F01 / F06) → 400 {@code ACCOUNT_INACTIVE}</li>
- * </ul>
- * Those exception types do not yet exist on this branch; do not add stub
- * handlers referencing them — that breaks compilation. Add the entries when
- * the corresponding capability lands.
- *
  * F05 wired {@link ResourceNotFoundException} → 404 {@code RESOURCE_NOT_FOUND};
  * any new capability that surfaces a "missing X" condition can throw the same
  * {@link ResourceNotFoundException} (with its own {@code resourceType}) and
  * reuse the existing handler entry — no per-resource handler is needed.
+ *
+ * F06 wired four business-rule mappings:
+ * <ul>
+ *   <li>{@link InsufficientFundsException}      → 400 {@code INSUFFICIENT_FUNDS}</li>
+ *   <li>{@link AccountInactiveException}        → 400 {@code ACCOUNT_INACTIVE}</li>
+ *   <li>{@link InvalidAmountException}          → 400 {@code BAD_REQUEST_PAYLOAD}</li>
+ *   <li>{@link SameAccountTransferException}    → 400 {@code BAD_REQUEST_PAYLOAD}</li>
+ * </ul>
+ * Each handler logs at INFO — these are expected business-rule rejections,
+ * not faults; operators should not be paged. Any future business-rule
+ * exception that extends {@link com.bank.core.domain.DomainException} can be
+ * added the same way: one method per exception so the per-type message
+ * stays explicit.
  */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -91,6 +98,46 @@ public class GlobalExceptionHandler {
                 ex.resourceType(), ex.identifier(), request.getMethod(), request.getRequestURI());
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(envelope(CodeEnum.RESOURCE_NOT_FOUND, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InsufficientFundsException.class)
+    public ResponseEntity<ErrorEnvelope> handleInsufficientFunds(InsufficientFundsException ex,
+                                                                 HttpServletRequest request) {
+        log.info("Insufficient funds on {} {}: account={} attempted={} available={}",
+                request.getMethod(), request.getRequestURI(),
+                ex.accountId(), ex.attempted(), ex.available());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(envelope(CodeEnum.INSUFFICIENT_FUNDS,
+                        "Source account has insufficient funds for the requested transfer."));
+    }
+
+    @ExceptionHandler(AccountInactiveException.class)
+    public ResponseEntity<ErrorEnvelope> handleAccountInactive(AccountInactiveException ex,
+                                                                HttpServletRequest request) {
+        log.info("Account inactive on {} {}: account={} status={}",
+                request.getMethod(), request.getRequestURI(),
+                ex.accountId(), ex.status());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(envelope(CodeEnum.ACCOUNT_INACTIVE,
+                        "Account " + ex.accountId() + " is not Active (status: " + ex.status() + ")."));
+    }
+
+    @ExceptionHandler(InvalidAmountException.class)
+    public ResponseEntity<ErrorEnvelope> handleInvalidAmount(InvalidAmountException ex,
+                                                              HttpServletRequest request) {
+        log.info("Invalid amount on {} {}: {}",
+                request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(envelope(CodeEnum.BAD_REQUEST_PAYLOAD, ex.getMessage()));
+    }
+
+    @ExceptionHandler(SameAccountTransferException.class)
+    public ResponseEntity<ErrorEnvelope> handleSameAccountTransfer(SameAccountTransferException ex,
+                                                                    HttpServletRequest request) {
+        log.info("Same-account transfer rejected on {} {}: account={}",
+                request.getMethod(), request.getRequestURI(), ex.account());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(envelope(CodeEnum.BAD_REQUEST_PAYLOAD, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

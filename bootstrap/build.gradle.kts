@@ -4,6 +4,12 @@ plugins {
 
 dependencies {
     implementation(project(":infrastructure"))
+    // F06 wires the TransferFunds use case + Clock as @Bean factory methods
+    // in BankCoreApplication, so the main scope needs the application and
+    // domain types directly (infrastructure exposes them as implementation,
+    // not api, so transitive visibility doesn't carry through to bootstrap).
+    implementation(project(":application"))
+    implementation(project(":domain"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.flywaydb:flyway-core")
