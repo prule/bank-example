@@ -15,9 +15,17 @@
 * Update IntelliJ project to use Java 25
 * The specs aren't written to OpenSpec standard so will need to be converted as they are done.
   * Should have instructed Claude to create the specs in OpenSpec format.
-* opsx:propose F00 & opsx:apply F00
+* propose/apply/archive F00-project-setup
   * Had trouble using Gradle since 8.12 was installed and wasn't working with Java 25. It used 21 to run Gradle.
     * It would have been better if I'd upgraded Gradle beforehand.
 * Should have said to always use latest versions of libraries - it didn't always do that because of the requirements (spring boot, archunit, gradle) - should check requirements don't specify versions and just refer to latest.
-* Asked Claude to convert all the specs now
+* Asked Claude to convert all the specs to openspec format now
+  * Can we convert all the specs to openspec format now?
+    * Move existing to openspec/specs/legacy/
+    * Direct doc refactor (Recommended)
+* propose/apply/archive contract-first-api
+* propose/apply/archive api-error-contract
+* propose/apply/archive account-domain
+* propose/apply/archive immutable-ledger
+* Interesting that `transfer-locking` didn't have db tables at that time so implemented locking without db. Perhaps should break down differently to get db set up earlier.
 * 
