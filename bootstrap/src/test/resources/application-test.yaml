@@ -26,3 +26,7 @@ bank:
   transfer:
     # Tight bound so transfer-locking contention tests fail fast.
     lock-wait-ms: 500
+  clearing-account:
+    # Symmetric with production default; declared here so the test profile
+    # is self-documenting about which clearing-account row F08 funds from.
+    number: CLEARING-000

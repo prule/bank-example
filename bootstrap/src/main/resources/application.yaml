@@ -53,3 +53,9 @@ bank:
     # Maximum wait for a paired write-lock acquisition before failing with
     # LockAcquisitionTimeoutException (transfer-locking spec, F07).
     lock-wait-ms: 5000
+  clearing-account:
+    # Well-known account number that funds every account opened with a
+    # positive opening balance (F08). F09 seeds the row at startup when
+    # SEED_DATA=true. The default is intentionally human-recognisable so
+    # operators inspecting `account` immediately spot the system row.
+    number: CLEARING-000
