@@ -12,12 +12,12 @@ properties:
   accountNumber:
     type: string
     description: External, human-readable account identifier.
-    example: "ACC-0001"
+    example: "CUST-1001"
   balance:
     type: string
     description: Current balance, formatted with exactly two fraction digits.
     pattern: "^\\d+\\.\\d{2}$"
-    example: "100.00"
+    example: "500.00"
   status:
     type: string
     description: Lifecycle status of the account.
