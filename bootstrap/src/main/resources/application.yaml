@@ -17,6 +17,14 @@ spring:
   h2:
     console:
       enabled: false
+  # Required so GlobalExceptionHandler can map unknown URLs to the canonical
+  # 404 RESOURCE_NOT_FOUND envelope. Without these two knobs Spring's static
+  # resource handler silently swallows unmatched paths and returns Whitelabel.
+  mvc:
+    throw-exception-if-no-handler-found: true
+  web:
+    resources:
+      add-mappings: false
 
 management:
   endpoints:

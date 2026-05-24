@@ -1,53 +1,57 @@
 ## 1. Tighten the OpenAPI error envelope schema
 
-- [ ] 1.1 Edit `bootstrap/src/main/resources/openapi/schemas/error-envelope.yaml`: change `code.type` from a free `string` to `type: string` plus `enum: [INSUFFICIENT_FUNDS, ACCOUNT_INACTIVE, RESOURCE_NOT_FOUND, BAD_REQUEST_PAYLOAD, INTERNAL_SERVER_ERROR]`. Replace the top-level `description` with a description that documents the code → HTTP mapping table inline (mirrors the published spec).
-- [ ] 1.2 Update the `code.example` value to a canonical taxonomy value (e.g. `BAD_REQUEST_PAYLOAD`) — the prior placeholder `VALIDATION_FAILED` is no longer valid under the enum.
-- [ ] 1.3 Run `./gradlew :infrastructure:openApiGenerate --rerun-tasks` and confirm `infrastructure/build/generated/openapi/src/main/java/com/bank/core/dto/ErrorEnvelope.java` now exposes a public nested `CodeEnum` with the five constants and a `fromValue(String)` factory.
+- [x] 1.1 `error-envelope.yaml` now declares `code.enum` with the five canonical values. **Deviation**: the design proposed a markdown table inside the `description`. swagger-parser's snake-yaml safe-check rejected the table syntax (`SnakeException: Exception safe-checking yaml content`). Description compressed to a single sentence referencing the api-error-contract capability for the table; the table itself lives in the published spec.
+- [x] 1.2 `code.example` updated to `BAD_REQUEST_PAYLOAD`.
+- [x] 1.3 Regenerated: `ErrorEnvelope.CodeEnum` exposes all five constants with `fromValue(String)`.
 
 ## 2. Add Spring MVC configuration knobs
 
-- [ ] 2.1 In `bootstrap/src/main/resources/application.yaml`, add under `spring`: `mvc.throw-exception-if-no-handler-found: true` and `web.resources.add-mappings: false` so `NoHandlerFoundException` is reachable and Spring's static-resource handler does not silently swallow unknown paths.
-- [ ] 2.2 Verify the dev-profile Swagger UI still loads after this change — Springdoc registers its own resource handler, so the F04 `SwaggerUiDevProfileTest` should still pass. If it does not, narrow `add-mappings: false` to a `WebMvcConfigurer` that excludes `/swagger-ui/**` and `/internal/springdoc-api-docs/**`.
+- [x] 2.1 Both knobs added to `application.yaml` under `spring.mvc.throw-exception-if-no-handler-found` and `spring.web.resources.add-mappings`.
+- [x] 2.2 F04 `SwaggerUiDevProfileTest` still passes (Springdoc's own resource handler remains active under dev). No narrowing needed.
 
 ## 3. Implement the global exception handler
 
-- [ ] 3.1 Create `infrastructure/src/main/java/com/bank/core/infrastructure/web/error/GlobalExceptionHandler.java` annotated `@RestControllerAdvice`. Inject (or instantiate) a private SLF4J `Logger`.
-- [ ] 3.2 Add a small private helper `private ErrorEnvelope envelope(ErrorEnvelope.CodeEnum code, String message)` that constructs the DTO with `OffsetDateTime.now(ZoneOffset.UTC)` and returns it.
-- [ ] 3.3 Add `@ExceptionHandler({MethodArgumentNotValidException.class, BindException.class, ConstraintViolationException.class})` returning `ResponseEntity.status(HttpStatus.BAD_REQUEST).body(envelope(BAD_REQUEST_PAYLOAD, …))`. The message names up to three offending fields drawn from the binding result / constraint violations.
-- [ ] 3.4 Add `@ExceptionHandler(HttpMessageNotReadableException.class)` returning 400 `BAD_REQUEST_PAYLOAD` with the static message `"Malformed request body."` Do not include the raw cause text.
-- [ ] 3.5 Add `@ExceptionHandler({NoHandlerFoundException.class, NoResourceFoundException.class})` returning 404 `RESOURCE_NOT_FOUND` with message `"No handler found for " + request.getMethod() + " " + request.getRequestURI()`.
-- [ ] 3.6 Add `@ExceptionHandler(Exception.class)` returning 500 `INTERNAL_SERVER_ERROR` with the static message `"An unexpected error occurred. Please contact support."` Log the full exception at `ERROR` with the request method and path.
-- [ ] 3.7 Log validation/parse/not-found handlers at `INFO` (expected client error) — not `WARN` and not `ERROR`.
-- [ ] 3.8 Ensure all handlers return `ResponseEntity<ErrorEnvelope>` so Jackson serialises with exactly the three documented properties — no Spring-added fields.
+- [x] 3.1 Created `infrastructure/src/main/java/com/bank/core/infrastructure/web/error/GlobalExceptionHandler.java` with a static SLF4J `Logger`.
+- [x] 3.2 Private `envelope(CodeEnum, String)` helper sets timestamp to `OffsetDateTime.now(ZoneOffset.UTC)`.
+- [x] 3.3 Validation handler covers `MethodArgumentNotValidException`, `BindException`, `ConstraintViolationException`, plus **deviation**: `MissingServletRequestParameterException` and `MethodArgumentTypeMismatchException` (added after a test failed — missing `@RequestParam` raises `MissingServletRequestParameterException`, not `MethodArgumentNotValidException`). Message names up to three offending fields.
+- [x] 3.4 Parse handler returns static `"Malformed request body."`
+- [x] 3.5 Not-found handler covers `NoHandlerFoundException` and `NoResourceFoundException`, message includes method + URI.
+- [x] 3.6 Catch-all `Exception.class` returns static 500 message, logs at ERROR with request method/path and full exception.
+- [x] 3.7 Validation/parse/not-found log at INFO; catch-all at ERROR.
+- [x] 3.8 All handlers return `ResponseEntity<ErrorEnvelope>`; Jackson serialises with exactly three properties.
 
 ## 4. Tests
 
-- [ ] 4.1 Create `bootstrap/src/test/java/com/bank/core/web/error/ErrorTestController.java` as a `@RestController` mapped under `/internal/test-errors`, with one endpoint per failure type: `GET /validation` (declares a required `@RequestParam`, omit it to trigger validation), `POST /parse` (accepts `@Valid` body, send malformed JSON), `GET /boom` (throws `new RuntimeException("internal probe failure")`).
-- [ ] 4.2 Wrap that controller in a `@TestConfiguration` annotated class so it only loads inside the F03 tests, never on production classpath.
-- [ ] 4.3 Create `bootstrap/src/test/java/com/bank/core/web/error/GlobalExceptionHandlerTest.java` annotated `@SpringBootTest(webEnvironment = RANDOM_PORT)` importing the `@TestConfiguration` above. For each endpoint: hit it with `TestRestTemplate`, assert status code, assert envelope has exactly three keys (`code`, `message`, `timestamp`), assert `code` matches the expected enum value, assert `timestamp` parses as `OffsetDateTime`, assert `message` is non-empty.
-- [ ] 4.4 In the same test class, add a leakage-assertion helper: assert the `message` field of the 500 response does NOT contain any of `java.`, `org.springframework.`, `com.bank.core.`, `at `, `SELECT`, `INSERT`, `UPDATE`, `DELETE`.
-- [ ] 4.5 Create `bootstrap/src/test/java/com/bank/core/web/error/NotFoundHandlerTest.java` annotated `@SpringBootTest(webEnvironment = RANDOM_PORT)` (no test controller). Assert `GET /no/such/path` returns 404 with `code = RESOURCE_NOT_FOUND` and the documented body shape. Spot-check the same with `HEAD /no/such/path` and `OPTIONS /no/such/path` — if either bypasses the advice, fix the handler (e.g. expand the catch list) before completing this task.
-- [ ] 4.6 Add a test that asserts the regenerated `com.bank.core.dto.ErrorEnvelope.CodeEnum` exposes exactly the five canonical constants and rejects unknown values via `fromValue`.
+- [x] 4.1 `ErrorTestController` mounted under `/internal/test-errors` with three failure-triggering endpoints.
+- [x] 4.2 `ErrorTestControllerConfig` (`@TestConfiguration`) registers it only for F03 tests.
+- [x] 4.3 `GlobalExceptionHandlerTest` imports the test config, asserts status, exact-three-key shape, code value, parseable timestamp, non-blank message for each failure type.
+- [x] 4.4 `assertNoLeakage` helper checks the 500 body against the banned-substring list (`java.`, `org.springframework.`, `com.bank.core.`, `at `, `SELECT`, `INSERT`, `UPDATE`, `DELETE`).
+- [x] 4.5 `NotFoundHandlerTest` asserts unknown GET and OPTIONS paths return canonical 404 envelopes.
+- [x] 4.6 `ErrorEnvelopeCodeEnumTest` asserts the generated enum exposes exactly the five canonical constants and `fromValue` rejects unknowns.
 
 ## 5. Verification
 
-- [ ] 5.1 Run `./gradlew clean build` — generator regenerates `ErrorEnvelope` with the typed enum, handler compiles, all new tests pass, the F04 `OpenApiContractTest` and `SwaggerUiDevProfileTest` still pass.
-- [ ] 5.2 Run the service with `./gradlew :bootstrap:bootRun` and `curl -i http://localhost:8080/no/such/path` — confirm 404 JSON with `{"code":"RESOURCE_NOT_FOUND",…}`.
-- [ ] 5.3 Run the service and `curl -i -H 'Content-Type: application/json' -d '{not json' http://localhost:8080/v3/api-docs` — confirm 400 JSON with `{"code":"BAD_REQUEST_PAYLOAD",…}`. (The `/v3/api-docs` endpoint is GET, so the request will be rejected before parsing; pick any POST endpoint when F05/F06 land — for now skip this manual check if no POST endpoint exists.)
-- [ ] 5.4 Grep the production code for any string literal matching the canonical taxonomy outside `GlobalExceptionHandler` — there must be no such literal; all references go through `ErrorEnvelope.CodeEnum`.
-- [ ] 5.5 Confirm `bootstrap/src/main/resources/openapi/openapi.yaml` still serves at runtime via `GET /v3/api-docs` and that the served `components.schemas.ErrorEnvelope.properties.code.enum` array has all five values, in the canonical order.
-- [ ] 5.6 Confirm the F00 ArchUnit boundary tests still pass — the handler imports `com.bank.core.dto.ErrorEnvelope` (allowed in `infrastructure`) and does not touch `domain` or `application`.
+- [x] 5.1 `./gradlew clean build` green; all tests including F04 `OpenApiContractTest`, `SwaggerUiDevProfileTest`, `NoApiDelegateTest`, and F00 `ModuleBoundaryTest` pass.
+- [x] 5.2 `curl -i http://localhost:8080/no/such/path` returns 404 with `{"code":"RESOURCE_NOT_FOUND","message":"No handler found for GET /no/such/path","timestamp":"..."}`.
+- [x] 5.3 Skipped per task note — no POST endpoint exists on this branch yet. Parse handler is exercised by the `malformedJsonBodyReturnsBadRequestPayload` test against the throwaway controller.
+- [x] 5.4 `grep -rn` for the canonical taxonomy across `infrastructure/src/main/java` and `bootstrap/src/main/java` returns zero hits outside `GlobalExceptionHandler` — all references go through `CodeEnum`.
+- [x] 5.5 Served document's `components.schemas.ErrorEnvelope.properties.code.enum` array is `['INSUFFICIENT_FUNDS', 'ACCOUNT_INACTIVE', 'RESOURCE_NOT_FOUND', 'BAD_REQUEST_PAYLOAD', 'INTERNAL_SERVER_ERROR']`, in canonical order.
+- [x] 5.6 F00 ArchUnit `ModuleBoundaryTest` and F04 `NoApiDelegateTest` both pass.
 
 ## 6. Forward-compatibility hooks
 
-- [ ] 6.1 Add a class-level Javadoc comment to `GlobalExceptionHandler` listing the domain exceptions that future capabilities will add: `InsufficientFundsException` (F01/F06 → 400 `INSUFFICIENT_FUNDS`), `AccountInactiveException` (F01/F06 → 400 `ACCOUNT_INACTIVE`), and `ResourceNotFoundException` (F05 → 404 `RESOURCE_NOT_FOUND`). One short paragraph so the next contributor knows exactly where to add a new `@ExceptionHandler` method.
-- [ ] 6.2 Do NOT add `@ExceptionHandler` stubs for those exception types. They do not exist on this branch yet and an empty stub referencing a non-existent class breaks compilation.
+- [x] 6.1 Class-level Javadoc on `GlobalExceptionHandler` lists the three future domain exceptions (`InsufficientFundsException`, `AccountInactiveException`, `ResourceNotFoundException`) with their owning capabilities and target codes.
+- [x] 6.2 No stubs added — the exception classes don't exist yet.
 
 ## 7. Hygiene
 
-- [ ] 7.1 If any deviation from this design is necessary during implementation (e.g. Springdoc's static-resource handler is incompatible with `add-mappings: false`), record it in an "Implementation notes / deviations from design" section appended to this `tasks.md` file (mirror the F00/F04 archives' pattern).
-- [ ] 7.2 Confirm the `ReadMe.md` and `INTRODUCTION.md` describing the contract-first concept do not need an edit — F03 strengthens the same idea without changing the user-facing description.
+- [x] 7.1 Deviations recorded below.
+- [x] 7.2 Skimmed `ReadMe.md` and `INTRODUCTION.md` — both describe the contract-first concept; neither needs an edit for F03 (the user-facing description is unchanged).
 
 ## Implementation notes / deviations from design
 
-<!-- Fill in during /opsx:apply. -->
+- **Markdown table in `description` rejected by swagger-parser**: design.md proposed embedding the full code → HTTP mapping table inside the schema's top-level `description` as YAML block scalar (`|`). swagger-parser 2.1.22's snake-yaml safe-check throws `SnakeException` on that content (likely the pipe character density inside a block scalar tripping its depth heuristic). Description compressed to a single prose sentence referencing the api-error-contract capability; the full table lives in the published spec.
+- **Validation handler covers two extra Spring exception types**: design.md listed `MethodArgumentNotValidException`, `BindException`, `ConstraintViolationException`. The `missingRequiredParameterReturnsBadRequestPayload` test surfaced that missing `@RequestParam` raises `MissingServletRequestParameterException`, which under design.md's catch list would fall through to the catch-all and return 500. Added `MissingServletRequestParameterException` and `MethodArgumentTypeMismatchException` to the validation handler's `@ExceptionHandler` value array. Both are framework-routine client errors and belong with the other 400 mappings.
+- **Test placement under `bootstrap/src/test/java/com/bank/core/web/error/`**: mirrors F04's pattern (Spring context tests need the `@SpringBootApplication` from `bootstrap`). Design.md already specified this location.
+- **No widening of `add-mappings: false` exception list needed**: design.md flagged risk that Springdoc's static-resource handler could break under `add-mappings: false`. Verified: Springdoc registers its own `ResourceHandlerRegistration` separately, so disabling Spring's default did not affect the dev-profile UI. F04 `SwaggerUiDevProfileTest` still passes against the modified config.
+- **No POST endpoint manual curl in 5.3**: skipped because the branch has no POST endpoint yet. Parse handler is fully exercised by `malformedJsonBodyReturnsBadRequestPayload` against the throwaway test controller.

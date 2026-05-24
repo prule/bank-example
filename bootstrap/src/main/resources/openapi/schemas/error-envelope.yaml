@@ -1,9 +1,10 @@
 type: object
 description: >
   Canonical error envelope returned by every 4xx/5xx response in the API.
-  The `code` property is a stable machine-readable identifier; the taxonomy
-  of permitted codes is owned by F03 (api-error-contract), which will tighten
-  this schema to enumerate the allowed values.
+  See the api-error-contract capability for the code-to-HTTP mapping
+  (INSUFFICIENT_FUNDS 400, ACCOUNT_INACTIVE 400, RESOURCE_NOT_FOUND 404,
+  BAD_REQUEST_PAYLOAD 400, INTERNAL_SERVER_ERROR 500). Codes are never
+  renamed once published; new codes may be added.
 required:
   - code
   - message
@@ -11,14 +12,20 @@ required:
 properties:
   code:
     type: string
-    description: Stable machine-readable error code (taxonomy defined in F03).
-    example: VALIDATION_FAILED
+    description: Canonical machine-readable error code, drawn from a fixed taxonomy.
+    enum:
+      - INSUFFICIENT_FUNDS
+      - ACCOUNT_INACTIVE
+      - RESOURCE_NOT_FOUND
+      - BAD_REQUEST_PAYLOAD
+      - INTERNAL_SERVER_ERROR
+    example: BAD_REQUEST_PAYLOAD
   message:
     type: string
-    description: Human-readable explanation suitable for support diagnostics.
-    example: Request body failed validation.
+    description: Human-readable explanation suitable for support diagnostics. Clients must not pattern-match on its content.
+    example: "Validation failed: field 'amount' must be positive."
   timestamp:
     type: string
     format: date-time
     description: Server-side instant the error was generated, in ISO-8601 with timezone offset.
-    example: "2026-05-23T14:30:00Z"
+    example: "2026-05-24T01:00:00Z"
