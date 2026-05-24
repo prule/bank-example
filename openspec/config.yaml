@@ -287,6 +287,13 @@ open_decisions:
   - id: lock-wait-timeout
     where: F07
     question: Bound for transfer lock wait under contention?
+    resolution: >
+      Closed by F07. Configurable via `bank.transfer.lock-wait-ms` in
+      `application.yaml` (default 5000 ms); the test profile overrides to
+      500 ms in `application-test.yaml` so contention tests fail fast. The
+      `JvmAccountLocker` adapter reads the bound at construction and surfaces
+      a `LockAcquisitionTimeoutException` on expiry.
+    closed: true
   - id: scheduler-config-externalised
     where: [F10, F11]
     question: >

@@ -21,3 +21,8 @@ management:
     web:
       exposure:
         include: health
+
+bank:
+  transfer:
+    # Tight bound so transfer-locking contention tests fail fast.
+    lock-wait-ms: 500

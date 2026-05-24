@@ -47,3 +47,9 @@ springdoc:
     enabled: false
   swagger-ui:
     enabled: false
+
+bank:
+  transfer:
+    # Maximum wait for a paired write-lock acquisition before failing with
+    # LockAcquisitionTimeoutException (transfer-locking spec, F07).
+    lock-wait-ms: 5000

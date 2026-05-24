@@ -73,4 +73,24 @@ class ModuleBoundaryTest {
                 .allowEmptyShould(true);
         rule.check(classes);
     }
+
+    @Test
+    void noClassesOutsideConcurrencyAdapterMayUseReentrantLock() {
+        ArchRule rule = noClasses()
+                .that().resideOutsideOfPackage("com.bank.core.infrastructure.concurrency..")
+                .should().dependOnClassesThat()
+                .haveFullyQualifiedName("java.util.concurrent.locks.ReentrantLock")
+                .allowEmptyShould(true);
+        rule.check(classes);
+    }
+
+    @Test
+    void noClassesOutsideConcurrencyAdapterMayUseTransactionSynchronizationManager() {
+        ArchRule rule = noClasses()
+                .that().resideOutsideOfPackage("com.bank.core.infrastructure.concurrency..")
+                .should().dependOnClassesThat()
+                .haveFullyQualifiedName("org.springframework.transaction.support.TransactionSynchronizationManager")
+                .allowEmptyShould(true);
+        rule.check(classes);
+    }
 }
