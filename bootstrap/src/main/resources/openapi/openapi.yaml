@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: bank-core
+  version: 0.1.0
+  description: >
+    Canonical OpenAPI contract for the bank-core service. This document is the
+    source of truth for the public HTTP surface: server-side interfaces and DTOs
+    are generated from it during the Gradle build, hand-written controllers
+    implement the generated interfaces, and the running service serves this
+    same document at `/v3/api-docs`. See `openspec/specs/contract-first-api/`
+    for the full requirements and `openspec/config.yaml` for the project
+    manifest.
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+tags:
+  - name: openapi
+    description: Operations on the API contract itself.
+paths:
+  /v3/api-docs:
+    $ref: "./paths/api-docs.yaml"
+components:
+  schemas:
+    ErrorEnvelope:
+      $ref: "./schemas/error-envelope.yaml"

@@ -9,3 +9,18 @@ bank-core:
     tcp-server:
       enabled: false
       port: 9092
+
+# Dev profile exposes Swagger UI, pointed at the hand-written /v3/api-docs
+# (served by OpenApiController from the canonical contract file). Springdoc's
+# own annotation-scanned endpoint is moved off /v3/api-docs to avoid colliding
+# with the controller; it is left enabled because disabling it also disables
+# springdoc's UI auto-configuration.
+springdoc:
+  api-docs:
+    enabled: true
+    path: /internal/springdoc-api-docs
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    url: /v3/api-docs
+    disable-swagger-default-url: true

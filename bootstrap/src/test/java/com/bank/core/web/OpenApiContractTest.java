@@ -1,0 +1,82 @@
+package com.bank.core.web;
+
+import io.swagger.v3.oas.models.OpenAPI;
+import io.swagger.v3.parser.OpenAPIV3Parser;
+import io.swagger.v3.parser.core.models.ParseOptions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
+import java.net.URL;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+class OpenApiContractTest {
+
+    @LocalServerPort
+    int port;
+
+    @Autowired
+    TestRestTemplate rest;
+
+    @Test
+    void yamlResponseContainsCanonicalContent() {
+        ResponseEntity<String> response = get(MediaType.parseMediaType("application/yaml"));
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType().toString()).startsWith("application/yaml");
+        assertThat(response.getBody()).contains("openapi:").contains("ErrorEnvelope");
+    }
+
+    @Test
+    void jsonResponseContainsCanonicalContent() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(200);
+        assertThat(response.getHeaders().getContentType()).isEqualTo(MediaType.APPLICATION_JSON);
+        assertThat(response.getBody()).contains("\"openapi\"").contains("ErrorEnvelope");
+    }
+
+    @Test
+    void servedDocumentMatchesCanonicalClasspathContract() {
+        URL classpathContract = getClass().getClassLoader().getResource("openapi/openapi.yaml");
+        ParseOptions options = new ParseOptions();
+        options.setResolve(true);
+        options.setResolveFully(true);
+        OpenAPI fromClasspath = new OpenAPIV3Parser()
+                .readLocation(classpathContract.toString(), null, options)
+                .getOpenAPI();
+
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = new OpenAPIV3Parser()
+                .readContents(response.getBody(), null, options)
+                .getOpenAPI();
+
+        Map<String, ?> classpathPaths = fromClasspath.getPaths();
+        Map<String, ?> controllerPaths = fromController.getPaths();
+        assertThat(controllerPaths.keySet()).isEqualTo(classpathPaths.keySet());
+
+        Map<String, ?> classpathSchemas = fromClasspath.getComponents().getSchemas();
+        Map<String, ?> controllerSchemas = fromController.getComponents().getSchemas();
+        assertThat(controllerSchemas.keySet()).isEqualTo(classpathSchemas.keySet());
+    }
+
+    private ResponseEntity<String> get(MediaType accept) {
+        HttpHeaders headers = new HttpHeaders();
+        headers.setAccept(java.util.List.of(accept));
+        return rest.exchange(
+                "http://localhost:" + port + "/v3/api-docs",
+                HttpMethod.GET,
+                new HttpEntity<>(headers),
+                String.class);
+    }
+}

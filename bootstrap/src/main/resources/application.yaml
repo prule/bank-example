@@ -30,3 +30,12 @@ management:
 
 server:
   port: 8080
+
+# Swagger UI is gated off in default/test. The `dev` profile overrides
+# springdoc.swagger-ui.enabled=true and points the UI at the hand-written
+# /v3/api-docs endpoint that serves the canonical contract.
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false

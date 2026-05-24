@@ -1,0 +1,28 @@
+get:
+  tags:
+    - openapi
+  operationId: getOpenApiDocument
+  summary: Fetch the canonical OpenAPI document
+  description: >
+    Returns the canonical OpenAPI 3.x document the build's code generator
+    consumed. Content negotiation: requesting `application/yaml` returns
+    YAML; otherwise the response is JSON. Docs UIs (Swagger UI under the
+    `dev` profile) consume this endpoint rather than relying on runtime
+    annotation scanning.
+  responses:
+    "200":
+      description: OpenAPI document
+      content:
+        application/yaml:
+          schema:
+            type: string
+        application/json:
+          schema:
+            type: object
+            additionalProperties: true
+    "5XX":
+      description: Server error
+      content:
+        application/json:
+          schema:
+            $ref: "../schemas/error-envelope.yaml"
