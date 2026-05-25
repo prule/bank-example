@@ -1,0 +1,17 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="BankCoreApplication [dev]" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot">
+    <option name="ACTIVE_PROFILES" value="dev" />
+    <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UnknownPolicyInFreeMode" />
+    <module name="bank-core.bootstrap.main" />
+    <option name="SPRING_BOOT_MAIN_CLASS" value="com.bank.core.BankCoreApplication" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.bank.core.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

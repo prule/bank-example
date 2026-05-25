@@ -30,7 +30,7 @@ case "${1:-}" in
     swagger)
         echo "Swagger UI will be available at http://localhost:8080/swagger-ui.html"
         echo "Canonical contract served at   http://localhost:8080/v3/api-docs"
-        exec ./gradlew :bootstrap:bootRun --args='--spring.profiles.active=dev'
+        open http://localhost:8080/swagger-ui.html
         ;;
     h2)
         echo "h2 target is a placeholder — enable bank-core.h2.tcp-server.enabled in application-dev.yaml to attach an external client."
