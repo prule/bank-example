@@ -5,6 +5,7 @@ import com.bank.core.domain.AccountNumber;
 import com.bank.core.domain.LockAcquisitionTimeoutException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
@@ -40,6 +41,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * "Single lock-acquisition component").
  */
 @Component
+@ConditionalOnProperty(name = "bank.transfer.locker", havingValue = "jvm", matchIfMissing = true)
 public final class JvmAccountLocker implements AccountLocker {
 
     private static final Logger log = LoggerFactory.getLogger(JvmAccountLocker.class);

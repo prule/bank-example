@@ -50,6 +50,19 @@ springdoc:
 
 bank:
   transfer:
+    # Locker strategy: 'jvm' (default, single-instance — process-wide
+    # ConcurrentHashMap<AccountNumber, ReentrantLock>) or 'db' (multi-
+    # instance — SELECT id FROM account ... FOR UPDATE serialises across
+    # all JVMs sharing the database).
+    #
+    # The 'db' strategy is required for any deployment with more than one
+    # application instance behind a load balancer. 'jvm' is faster
+    # (~10 ns per acquisition vs ~1 ms DB round-trip on H2-in-memory)
+    # but only correct under single-instance topology.
+    #
+    # Both strategies honour bank.transfer.lock-wait-ms (default 5000)
+    # and throw the same LockAcquisitionTimeoutException on timeout.
+    locker: jvm
     # Maximum wait for a paired write-lock acquisition before failing with
     # LockAcquisitionTimeoutException (transfer-locking spec, F07).
     lock-wait-ms: 5000
