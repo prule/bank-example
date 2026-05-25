@@ -7,6 +7,9 @@
   ],
   "timezone": "Etc/UTC",
   "schedule": ["before 6am on monday"],
+  "baseBranches": ["v1-basic", "v2-openspec-claude"],
+  "useBaseBranchConfig": "merge",
+  "additionalBranchPrefix": "{{baseBranch}}-",
   "prConcurrentLimit": 5,
   "prHourlyLimit": 2,
   "vulnerabilityAlerts": {
