@@ -4,6 +4,7 @@ import com.bank.core.application.account.Accounts;
 import com.bank.core.application.account.OpenAccount;
 import com.bank.core.application.concurrency.AccountLocker;
 import com.bank.core.application.ledger.JournalEntries;
+import com.bank.core.application.ledger.VerifyPendingJournals;
 import com.bank.core.application.seed.ClearingAccountSeed;
 import com.bank.core.application.seed.CustomerSeed;
 import com.bank.core.application.seed.SeedData;
@@ -13,6 +14,7 @@ import com.bank.core.domain.AccountNumber;
 import com.bank.core.domain.Money;
 import com.bank.core.infrastructure.account.OpenAccountService;
 import com.bank.core.infrastructure.concurrency.TransferLockingProperties;
+import com.bank.core.infrastructure.scheduling.JournalVerificationProperties;
 import com.bank.core.infrastructure.seed.SeedProperties;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
@@ -27,7 +29,7 @@ import java.time.Clock;
 import java.util.List;
 
 @SpringBootApplication(scanBasePackages = "com.bank.core")
-@EnableConfigurationProperties({TransferLockingProperties.class, SeedProperties.class})
+@EnableConfigurationProperties({TransferLockingProperties.class, SeedProperties.class, JournalVerificationProperties.class})
 @EnableScheduling
 @EnableAsync
 public class BankCoreApplication {
@@ -114,5 +116,20 @@ public class BankCoreApplication {
     @ConditionalOnProperty(name = "bank.seed.enabled", havingValue = "true")
     SeedData seedData(Accounts accounts, OpenAccountService openAccountService, SeedPlan plan) {
         return new SeedData(accounts, openAccountService::open, plan);
+    }
+
+    /**
+     * F10 journal-verification use case. Plain Java per F02's
+     * {@code transactional-in-application} precedent; per design.md Decision
+     * 2 the transactional boundaries live on the {@code JournalEntries} and
+     * {@code Accounts} adapter methods, NOT on the use case or scheduler.
+     * Reading {@code pageSize} here keeps {@code @Value} out of the
+     * application module (design.md Decision 6).
+     */
+    @Bean
+    VerifyPendingJournals verifyPendingJournals(JournalEntries journals,
+                                                Accounts accounts,
+                                                JournalVerificationProperties props) {
+        return new VerifyPendingJournals(journals, accounts, props.pageSize());
     }
 }

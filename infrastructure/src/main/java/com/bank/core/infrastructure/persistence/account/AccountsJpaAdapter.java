@@ -2,6 +2,7 @@ package com.bank.core.infrastructure.persistence.account;
 
 import com.bank.core.application.account.Accounts;
 import com.bank.core.domain.Account;
+import com.bank.core.domain.AccountId;
 import com.bank.core.domain.AccountNumber;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,12 @@ class AccountsJpaAdapter implements Accounts {
     @Transactional(readOnly = true)
     public Optional<Account> findByNumber(AccountNumber number) {
         return repository.findByAccountNumber(number.value()).map(AccountMapper::toDomain);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Optional<Account> findById(AccountId id) {
+        return repository.findById(id.value()).map(AccountMapper::toDomain);
     }
 
     @Override

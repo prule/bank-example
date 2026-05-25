@@ -30,3 +30,9 @@ bank:
     # Symmetric with production default; declared here so the test profile
     # is self-documenting about which clearing-account row F08 funds from.
     number: CLEARING-000
+  journal-verification:
+    # Fast cadence so integration tests can Awaitility-poll a sweep within
+    # a few hundred ms rather than the production 10 s.
+    fixed-delay-ms: 200
+    initial-delay-ms: 0
+    page-size: 50

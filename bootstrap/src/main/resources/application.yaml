@@ -71,3 +71,10 @@ bank:
   #   NOT inherit any seed defaults from this profile.
   seed:
     enabled: false
+  journal-verification:
+    # F10 background sweep: promotes Pending journal_entry rows to VERIFIED
+    # or FAILED (cascading account suspension on FAILED).
+    # See openspec/specs/journal-verification/spec.md.
+    fixed-delay-ms: 10000   # spec target: every 10 s; fixedDelay (not fixedRate) so a slow tick never overlaps with itself
+    initial-delay-ms: 5000  # small head start so the sweep doesn't race the application context's first POST handler
+    page-size: 50           # spec target: at most 50 Pending journals per tick

@@ -1,6 +1,7 @@
 package com.bank.core.application.account;
 
 import com.bank.core.domain.Account;
+import com.bank.core.domain.AccountId;
 import com.bank.core.domain.AccountNumber;
 
 import java.util.Optional;
@@ -28,6 +29,11 @@ import java.util.Optional;
  *   <li>F09 (dev data seeding) calls {@link #save(Account)} from a startup
  *       runner gated by {@code SEED_DATA=true}; idempotency is provided by
  *       the {@code account_number} unique index.</li>
+ *   <li>F10 (journal verification) calls {@link #findById(AccountId)} from
+ *       the suspend cascade — when an unbalanced journal is detected, every
+ *       account referenced by the journal's movements is loaded by its
+ *       internal {@link AccountId} and (if Active) suspended via
+ *       {@link #save(Account)}.</li>
  *   <li>F11 (balance drift detection) loads aggregates via
  *       {@link #findByNumber(AccountNumber)} to compare cached balance
  *       against the per-account ledger sum.</li>
@@ -36,6 +42,8 @@ import java.util.Optional;
 public interface Accounts {
 
     Optional<Account> findByNumber(AccountNumber number);
+
+    Optional<Account> findById(AccountId id);
 
     Account save(Account account);
 }
