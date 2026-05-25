@@ -2,6 +2,9 @@ package com.bank.core;
 
 import com.bank.core.application.account.Accounts;
 import com.bank.core.application.account.OpenAccount;
+import com.bank.core.application.audit.AuditCheckpoints;
+import com.bank.core.application.audit.DetectBalanceDrift;
+import com.bank.core.application.audit.LedgerMovements;
 import com.bank.core.application.concurrency.AccountLocker;
 import com.bank.core.application.ledger.JournalEntries;
 import com.bank.core.application.ledger.VerifyPendingJournals;
@@ -14,6 +17,7 @@ import com.bank.core.domain.AccountNumber;
 import com.bank.core.domain.Money;
 import com.bank.core.infrastructure.account.OpenAccountService;
 import com.bank.core.infrastructure.concurrency.TransferLockingProperties;
+import com.bank.core.infrastructure.scheduling.BalanceDriftProperties;
 import com.bank.core.infrastructure.scheduling.JournalVerificationProperties;
 import com.bank.core.infrastructure.seed.SeedProperties;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,7 +33,7 @@ import java.time.Clock;
 import java.util.List;
 
 @SpringBootApplication(scanBasePackages = "com.bank.core")
-@EnableConfigurationProperties({TransferLockingProperties.class, SeedProperties.class, JournalVerificationProperties.class})
+@EnableConfigurationProperties({TransferLockingProperties.class, SeedProperties.class, JournalVerificationProperties.class, BalanceDriftProperties.class})
 @EnableScheduling
 @EnableAsync
 public class BankCoreApplication {
@@ -131,5 +135,24 @@ public class BankCoreApplication {
                                                 Accounts accounts,
                                                 JournalVerificationProperties props) {
         return new VerifyPendingJournals(journals, accounts, props.pageSize());
+    }
+
+    /**
+     * F11 balance-drift use case. Plain Java per F02's
+     * {@code transactional-in-application} precedent; the {@code @Transactional}
+     * boundary lives on {@code BalanceDriftAudit} (design.md Decision 3) so the
+     * checkpoint advance commits in the same transaction as any account
+     * suspensions performed by the same tick. The clearing-account number is
+     * read from {@code bank.clearing-account.number} here so the application
+     * module stays free of {@code @Value} (design.md Decision 6); the use case
+     * uses it to implement the carve-out that prevents the clearing account
+     * from being auto-suspended.
+     */
+    @Bean
+    DetectBalanceDrift detectBalanceDrift(LedgerMovements movements,
+                                          Accounts accounts,
+                                          AuditCheckpoints checkpoints,
+                                          @Value("${bank.clearing-account.number}") String clearingAccountNumber) {
+        return new DetectBalanceDrift(movements, accounts, checkpoints, AccountNumber.of(clearingAccountNumber));
     }
 }

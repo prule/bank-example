@@ -36,3 +36,13 @@ bank:
     fixed-delay-ms: 200
     initial-delay-ms: 0
     page-size: 50
+  balance-drift:
+    # F11 stays effectively dormant under the default `test` profile: many
+    # integration tests hand-seed accounts via accounts.save(...) which
+    # bypasses the F06 transfer pipeline, leaving cached balances without
+    # matching ledger entries. A fast-cadence F11 audit would then suspend
+    # those test fixtures the first time it ticks. F11's own integration
+    # test overrides these values via @SpringBootTest(properties = ...)
+    # to get a sub-second cadence within its isolated H2 URL.
+    fixed-delay-ms: 30000
+    initial-delay-ms: 3600000

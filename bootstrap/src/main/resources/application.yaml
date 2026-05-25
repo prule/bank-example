@@ -71,6 +71,13 @@ bank:
   #   NOT inherit any seed defaults from this profile.
   seed:
     enabled: false
+  # F11 — periodic background audit that compares each account's cached
+  # balance against the sum of its ledger movements and Suspends Active
+  # accounts whose two values disagree (clearing account exempt by spec).
+  # See openspec/specs/balance-drift-detection/spec.md.
+  balance-drift:
+    fixed-delay-ms: 30000   # Spec target: every 30 s.
+    initial-delay-ms: 15000 # Staggered so this and journal-verification do not fire at the same second after boot.
   journal-verification:
     # F10 background sweep: promotes Pending journal_entry rows to VERIFIED
     # or FAILED (cascading account suspension on FAILED).
