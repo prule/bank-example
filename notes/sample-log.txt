@@ -1,0 +1,70 @@
+com.bank.core.BankCoreApplication
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.5)
+
+2026-05-25T15:50:57.380+10:00  INFO 41955 --- [bank-core] [           main] com.bank.core.BankCoreApplication        : Starting BankCoreApplication using Java 25.0.3 with PID 41955 (/Users/paulrule/IdeaProjects/study/bank-example/bootstrap/build/classes/java/main started by paulrule in /Users/paulrule/IdeaProjects/study/bank-example)
+2026-05-25T15:50:57.382+10:00  INFO 41955 --- [bank-core] [           main] com.bank.core.BankCoreApplication        : The following 1 profile is active: "dev"
+2026-05-25T15:50:57.842+10:00  INFO 41955 --- [bank-core] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-05-25T15:50:57.869+10:00  INFO 41955 --- [bank-core] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 23 ms. Found 4 JPA repository interfaces.
+2026-05-25T15:50:58.218+10:00  INFO 41955 --- [bank-core] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-05-25T15:50:58.227+10:00  INFO 41955 --- [bank-core] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-05-25T15:50:58.227+10:00  INFO 41955 --- [bank-core] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.40]
+2026-05-25T15:50:58.265+10:00  INFO 41955 --- [bank-core] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-05-25T15:50:58.265+10:00  INFO 41955 --- [bank-core] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 863 ms
+2026-05-25T15:50:58.440+10:00  INFO 41955 --- [bank-core] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-05-25T15:50:58.510+10:00  INFO 41955 --- [bank-core] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection conn0: url=jdbc:h2:mem:bankcore user=SA
+2026-05-25T15:50:58.511+10:00  INFO 41955 --- [bank-core] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-05-25T15:50:58.528+10:00  INFO 41955 --- [bank-core] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:h2:mem:bankcore (H2 2.3)
+2026-05-25T15:50:58.532+10:00  WARN 41955 --- [bank-core] [           main] o.f.c.internal.database.base.Database    : Flyway upgrade recommended: H2 2.3.232 is newer than this version of Flyway and support has not been tested. The latest supported version of H2 is 2.2.224.
+2026-05-25T15:50:58.541+10:00  INFO 41955 --- [bank-core] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Schema history table "PUBLIC"."flyway_schema_history" does not exist yet
+2026-05-25T15:50:58.541+10:00  INFO 41955 --- [bank-core] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 4 migrations (execution time 00:00.005s)
+2026-05-25T15:50:58.544+10:00  INFO 41955 --- [bank-core] [           main] o.f.c.i.s.JdbcTableSchemaHistory         : Creating Schema History table "PUBLIC"."flyway_schema_history" ...
+2026-05-25T15:50:58.554+10:00  INFO 41955 --- [bank-core] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "PUBLIC": << Empty Schema >>
+2026-05-25T15:50:58.556+10:00  INFO 41955 --- [bank-core] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "1 - init"
+2026-05-25T15:50:58.560+10:00  INFO 41955 --- [bank-core] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "2 - ledger"
+2026-05-25T15:50:58.567+10:00  INFO 41955 --- [bank-core] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "3 - account"
+2026-05-25T15:50:58.570+10:00  INFO 41955 --- [bank-core] [           main] o.f.core.internal.command.DbMigrate      : Migrating schema "PUBLIC" to version "4 - audit checkpoint"
+2026-05-25T15:50:58.574+10:00  INFO 41955 --- [bank-core] [           main] o.f.core.internal.command.DbMigrate      : Successfully applied 4 migrations to schema "PUBLIC", now at version v4 (execution time 00:00.006s)
+2026-05-25T15:50:58.619+10:00  INFO 41955 --- [bank-core] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-05-25T15:50:58.650+10:00  INFO 41955 --- [bank-core] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.13.Final
+2026-05-25T15:50:58.668+10:00  INFO 41955 --- [bank-core] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-05-25T15:50:58.802+10:00  INFO 41955 --- [bank-core] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-05-25T15:50:58.836+10:00  INFO 41955 --- [bank-core] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 2.3.232
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-05-25T15:50:59.261+10:00  INFO 41955 --- [bank-core] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-05-25T15:50:59.269+10:00  INFO 41955 --- [bank-core] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-05-25T15:50:59.427+10:00  INFO 41955 --- [bank-core] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-05-25T15:51:01.605+10:00  INFO 41955 --- [bank-core] [           main] o.s.b.a.h2.H2ConsoleAutoConfiguration    : H2 console available at '/h2-console'. Database available at 'jdbc:h2:mem:bankcore'
+2026-05-25T15:51:01.614+10:00  INFO 41955 --- [bank-core] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint beneath base path '/actuator'
+2026-05-25T15:51:01.667+10:00  INFO 41955 --- [bank-core] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-05-25T15:51:01.683+10:00  INFO 41955 --- [bank-core] [           main] com.bank.core.BankCoreApplication        : Started BankCoreApplication in 4.53 seconds (process running for 4.822)
+2026-05-25T15:51:01.854+10:00  INFO 41955 --- [bank-core] [           main] c.b.c.i.seed.SeedDataRunner              : dev seed complete: clearing=CLEARING-000 customers=[CUST-1001, CUST-1002, CUST-1003] (count=3)
+2026-05-25T15:51:06.723+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=2, verified=2, failed=0, errored=0
+2026-05-25T15:51:15.545+10:00  INFO 41955 --- [bank-core] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-05-25T15:51:15.546+10:00  INFO 41955 --- [bank-core] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-05-25T15:51:15.547+10:00  INFO 41955 --- [bank-core] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 1 ms
+2026-05-25T15:51:16.698+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.a.audit.DetectBalanceDrift         : clearing-account audit skipped: CLEARING-000 (per balance-drift-detection spec carve-out)
+2026-05-25T15:51:16.703+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.BalanceDriftScheduler          : balance drift tick: floor=0, ceiling=4, inspected=2, drifted=0
+2026-05-25T15:51:16.726+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=0, verified=0, failed=0, errored=0
+2026-05-25T15:51:26.733+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=0, verified=0, failed=0, errored=0
+2026-05-25T15:51:36.739+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=0, verified=0, failed=0, errored=0
+2026-05-25T15:51:46.712+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.BalanceDriftScheduler          : balance drift tick: floor=4, ceiling=4, inspected=0, drifted=0
+2026-05-25T15:51:46.749+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=0, verified=0, failed=0, errored=0
+2026-05-25T15:51:56.756+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=0, verified=0, failed=0, errored=0
+2026-05-25T15:52:06.771+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=1, verified=1, failed=0, errored=0
+2026-05-25T15:52:16.731+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.BalanceDriftScheduler          : balance drift tick: floor=4, ceiling=6, inspected=2, drifted=0
+2026-05-25T15:52:16.777+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=0, verified=0, failed=0, errored=0
+2026-05-25T15:52:26.792+10:00  INFO 41955 --- [bank-core] [   scheduling-1] c.b.c.i.s.JournalVerificationScheduler   : journal verification tick: processed=0, verified=0, failed=0, errored=0
