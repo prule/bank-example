@@ -1,0 +1,54 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":dependencyDashboard",
+    ":semanticCommits"
+  ],
+  "timezone": "Etc/UTC",
+  "schedule": ["before 6am on monday"],
+  "prConcurrentLimit": 5,
+  "prHourlyLimit": 2,
+  "vulnerabilityAlerts": {
+    "enabled": true,
+    "schedule": ["at any time"]
+  },
+  "packageRules": [
+    {
+      "matchPackagePrefixes": [
+        "org.springframework.boot",
+        "org.springframework.cloud"
+      ],
+      "groupName": "spring-boot"
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "groupName": "github-actions",
+      "automerge": true
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["major"],
+      "groupName": "github-actions-major",
+      "automerge": false
+    },
+    {
+      "matchManagers": ["gradle-wrapper"],
+      "groupName": "gradle-wrapper"
+    },
+    {
+      "matchPackageNames": [
+        "org.mockito:mockito-core",
+        "org.mockito:mockito-junit-jupiter"
+      ],
+      "matchPackagePrefixes": ["net.bytebuddy:"],
+      "dependencyDashboardApproval": true
+    },
+    {
+      "matchManagers": ["sdkmanrc"],
+      "matchUpdateTypes": ["major"],
+      "dependencyDashboardApproval": true
+    }
+  ]
+}
