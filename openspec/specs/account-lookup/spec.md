@@ -103,7 +103,11 @@ This capability SHALL introduce the `account` table via Flyway migration `V3__ac
 
 ### Requirement: Application port stays Spring-free
 
-The `Accounts` interface in `com.bank.core.application.account` SHALL be a plain Java interface with no Spring/JPA annotations and no imports from `org.springframework.*`, `jakarta.persistence.*`, or `org.openapitools.*`. Its method signatures SHALL use only domain types (`Account`, `AccountNumber`) and JDK types (`Optional`). The port SHALL declare `Optional<Account> findByNumber(AccountNumber number)` (used by this capability) and `Account save(Account account)` (used by F06/F08/F09 in later changes).
+The `Accounts` interface in `com.bank.core.application.account` SHALL be a plain Java interface with no Spring/JPA annotations and no imports from `org.springframework.*`, `jakarta.persistence.*`, or `org.openapitools.*`. Its method signatures SHALL use only domain types (`Account`, `AccountNumber`, `AccountId`) and JDK types (`Optional`). The port SHALL declare:
+
+- `Optional<Account> findByNumber(AccountNumber number)` — public lookup by external account number (consumed by the HTTP read endpoint and by [[fund-transfer]] / [[account-opening]] / [[dev-data-seeding]]).
+- `Optional<Account> findById(AccountId id)` — internal lookup by aggregate id (consumed by [[journal-verification]]'s suspend cascade, which gets `AccountId`s from `Movement` records rather than account numbers). NOT exposed through the HTTP surface; internal-only.
+- `Account save(Account account)` — upsert by aggregate id (consumed by [[fund-transfer]] / [[account-opening]] / [[dev-data-seeding]] / [[journal-verification]]).
 
 #### Scenario: Port is plain Java
 
@@ -114,6 +118,16 @@ The `Accounts` interface in `com.bank.core.application.account` SHALL be a plain
 
 - **WHEN** the `Accounts` port is inspected
 - **THEN** it declares both `findByNumber` and `save` so that F06 (fund transfer), F08 (account opening), and F09 (dev data seeding) can land without further port edits
+
+#### Scenario: findById is available for internal id-based loads
+
+- **WHEN** the `Accounts` port is inspected
+- **THEN** it declares `Optional<Account> findById(AccountId id)`; the infrastructure adapter implements it by delegating to the existing `JpaRepository.findById(UUID)` with no new SQL and no schema change; the method is NOT reached from any HTTP controller (verified by a grep across `com.bank.core.infrastructure.web..` returning zero references to `Accounts.findById(...)`)
+
+#### Scenario: findById returns empty for an unknown id
+
+- **WHEN** `Accounts.findById(AccountId.of(UUID.randomUUID()))` is called with a UUID that maps to no row
+- **THEN** the call returns `Optional.empty()`; no exception is thrown; the call does not log
 
 ### Requirement: Account aggregate exposes a rehydrate factory for mapping
 
