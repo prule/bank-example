@@ -29,7 +29,8 @@ public class H2ServerInitializer {
     @PostConstruct
     void start() throws SQLException {
         server = Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", Integer.toString(port)).start();
-        log.info("H2 TCP server started on port {}", port);
+        log.info("H2 TCP server started on port {} (connect with: jdbc:h2:tcp://localhost:{}/mem:bankcore, user sa, no password)",
+                port, port);
     }
 
     @PreDestroy

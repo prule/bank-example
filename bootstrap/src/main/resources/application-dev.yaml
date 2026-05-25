@@ -6,8 +6,32 @@ spring:
 
 bank-core:
   h2:
+    # H2 TCP server that exposes the live application database (the same
+    # mem:bankcore instance Hikari is using — H2 in-memory DBs are shared
+    # across all connections inside a single JVM, so external clients see
+    # the same Flyway-migrated tables and the same uncommitted data).
+    #
+    # Connect from your JDBC client of choice with:
+    #   jdbc:h2:tcp://localhost:9092/mem:bankcore
+    #   user: sa   (password: empty)
+    #
+    # Production safety: H2ServerInitializer is @Profile("dev")-gated, so
+    # flipping this property has no effect outside the dev profile.
+    #
+    # Per-session escape hatches:
+    #   * To restore the old "off" behaviour for a single run:
+    #       --bank-core.h2.tcp-server.enabled=false
+    #   * To persist data across restarts, override the datasource URL too:
+    #       --spring.datasource.url=jdbc:h2:file:./build/h2-dev;DB_CLOSE_DELAY=-1
+    #     The corresponding TCP URL fragment becomes:
+    #       jdbc:h2:tcp://localhost:9092/file:./build/h2-dev
+    #
+    # Caveat: external clients see the live application DB. Writing to it
+    # (especially DDL) can break the running application — Hibernate runs
+    # with ddl-auto=validate and will reject the next read if the schema
+    # diverges.
     tcp-server:
-      enabled: false
+      enabled: true
       port: 9092
 
 # Dev profile exposes Swagger UI, pointed at the hand-written /v3/api-docs
