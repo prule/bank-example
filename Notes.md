@@ -37,3 +37,6 @@
   * Manually checked and marked the 3 outstanding tasks in tasks.md as completed.
 
 
+...
+
+I'm using Claude to commit changes, since I think it 
