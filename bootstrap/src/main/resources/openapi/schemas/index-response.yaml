@@ -1,0 +1,24 @@
+type: object
+description: >
+  Root API discovery resource returned by GET /api/v1. Carries only a `_links`
+  map advertising every root resource a HAL-aware client can navigate to.
+required:
+  - _links
+properties:
+  _links:
+    type: object
+    description: HAL link map for the API root.
+    required:
+      - self
+      - accounts
+      - transfers
+      - openapi
+    properties:
+      self:
+        $ref: "./link.yaml"
+      accounts:
+        $ref: "./link.yaml"
+      transfers:
+        $ref: "./link.yaml"
+      openapi:
+        $ref: "./link.yaml"

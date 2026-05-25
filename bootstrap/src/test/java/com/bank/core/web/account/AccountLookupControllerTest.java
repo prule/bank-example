@@ -28,7 +28,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @ActiveProfiles("test")
 class AccountLookupControllerTest {
 
-    private static final Set<String> ACCOUNT_BODY_KEYS = Set.of("accountNumber", "balance", "status");
+    private static final Set<String> ACCOUNT_BODY_KEYS = Set.of("accountNumber", "balance", "status", "_links");
     private static final Set<String> ERROR_BODY_KEYS = Set.of("code", "message", "timestamp");
 
     @LocalServerPort
@@ -65,7 +65,7 @@ class AccountLookupControllerTest {
     }
 
     @Test
-    void existingAccountReturns200WithExactlyThreeFields() throws Exception {
+    void existingAccountReturns200WithExactlyFourFieldsIncludingLinks() throws Exception {
         Account a = Account.open(AccountNumber.of("ACC-200"), Money.of("100.00"));
         tx().executeWithoutResult(s -> accounts.save(a));
 
@@ -78,6 +78,9 @@ class AccountLookupControllerTest {
         assertThat(body.get("accountNumber").asText()).isEqualTo("ACC-200");
         assertThat(body.get("balance").asText()).isEqualTo("100.00");
         assertThat(body.get("status").asText()).isEqualTo("ACTIVE");
+        JsonNode links = body.get("_links");
+        assertThat(links.get("self").get("href").asText()).isEqualTo("/api/v1/accounts/ACC-200");
+        assertThat(links.get("transfers").get("href").asText()).isEqualTo("/api/v1/transfers");
     }
 
     @Test

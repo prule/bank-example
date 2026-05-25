@@ -24,12 +24,12 @@ import org.springframework.web.bind.annotation.RestController;
  * {@code @Transactional(readOnly = true)} internally.
  */
 @RestController
-class TransferController implements TransfersApi {
+public class TransferController implements TransfersApi {
 
     private final TransferFunds transferFunds;
     private final TransferRequestMapper mapper;
 
-    TransferController(TransferFunds transferFunds, TransferRequestMapper mapper) {
+    public TransferController(TransferFunds transferFunds, TransferRequestMapper mapper) {
         this.transferFunds = transferFunds;
         this.mapper = mapper;
     }

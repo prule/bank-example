@@ -87,6 +87,41 @@ class OpenApiContractTest {
     }
 
     @Test
+    void servedDocumentDeclaresGetIndexOperation() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = parse(response.getBody());
+
+        Object pathItem = fromController.getPaths().get("/api/v1");
+        assertThat(pathItem)
+                .as("served document must declare GET /api/v1")
+                .isNotNull();
+        assertThat(fromController.getPaths().get("/api/v1").getGet().getOperationId())
+                .isEqualTo("getIndex");
+    }
+
+    @Test
+    void servedDocumentDeclaresLinkAndIndexResponseSchemas() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = parse(response.getBody());
+        Map<String, ?> schemas = fromController.getComponents().getSchemas();
+
+        assertThat(schemas).containsKeys("Link", "IndexResponse");
+        Schema<?> link = (Schema<?>) schemas.get("Link");
+        assertThat(link.getRequired()).containsExactly("href");
+    }
+
+    @Test
+    void accountResponseSchemaRequiresLinks() {
+        ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
+        OpenAPI fromController = parse(response.getBody());
+
+        Schema<?> accountResponse = fromController.getComponents().getSchemas().get("AccountResponse");
+        assertThat(accountResponse.getRequired())
+                .as("AccountResponse must require _links after HATEOAS change")
+                .contains("_links");
+    }
+
+    @Test
     void servedDocumentDeclaresAccountResponseSchemaWithAllThreeStatuses() {
         ResponseEntity<String> response = get(MediaType.APPLICATION_JSON);
         OpenAPI fromController = parse(response.getBody());

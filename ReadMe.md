@@ -87,6 +87,29 @@ Account and transfer responses include navigable links (`self`, `transfers`, `jo
 **Renames.**
 A handful of names in v1 read as ChatGPT-default-tone marketing prose ("EMERGENCY CONTAINMENT", "SECURITY BREACH ALARM", "CRITICAL INVARIANT VIOLATION"). These go. Logs are factual; class names are nouns; method names are verbs.
 
+## Discovery
+
+The running service is self-describing via HAL links. Start at the API root and follow `_links` from there — no need to hard-code URL templates.
+
+```bash
+curl http://localhost:8080/api/v1
+```
+
+Returns:
+
+```json
+{
+  "_links": {
+    "self":      { "href": "/api/v1",                                "templated": false },
+    "accounts":  { "href": "/api/v1/accounts/{accountNumber}",       "templated": true  },
+    "transfers": { "href": "/api/v1/transfers",                      "templated": false },
+    "openapi":   { "href": "/v3/api-docs",                           "templated": false }
+  }
+}
+```
+
+Account responses carry their own `_links` (`self`, `transfers`) so a client holding an account can move money without consulting the contract again. HAL clients should send `Accept: application/hal+json`; naive clients get plain `application/json` with the same body.
+
 ## How to read this repo
 
 If you want the business picture: `REQUIREMENTS.md`.

@@ -16,6 +16,8 @@ servers:
 tags:
   - name: openapi
     description: Operations on the API contract itself.
+  - name: index
+    description: API discovery root with HAL links.
   - name: accounts
     description: Read and (in later capabilities) mutate customer accounts.
   - name: transfers
@@ -23,6 +25,8 @@ tags:
 paths:
   /v3/api-docs:
     $ref: "./paths/api-docs.yaml"
+  /api/v1:
+    $ref: "./paths/index.yaml"
   /api/v1/accounts/{accountNumber}:
     $ref: "./paths/accounts.yaml"
   /api/v1/transfers:
@@ -35,3 +39,7 @@ components:
       $ref: "./schemas/account-response.yaml"
     TransferRequest:
       $ref: "./schemas/transfer-request.yaml"
+    IndexResponse:
+      $ref: "./schemas/index-response.yaml"
+    Link:
+      $ref: "./schemas/link.yaml"

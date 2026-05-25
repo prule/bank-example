@@ -1,0 +1,22 @@
+type: object
+description: >
+  HAL-style hyperlink. Every embedded `_links` map across the API uses this
+  schema for its values. `href` is mandatory and is either a concrete URL path
+  or a URI Template (RFC 6570); the optional `templated` flag distinguishes
+  the two.
+required:
+  - href
+properties:
+  href:
+    type: string
+    description: Target URL or URI template.
+    example: "/api/v1/accounts/CUST-1001"
+  templated:
+    type: boolean
+    description: >
+      true when `href` is an RFC 6570 URI template with `{var}` placeholders
+      the client must expand. Omitted or false for concrete URLs.
+    example: false
+  title:
+    type: string
+    description: Optional human-readable label for the link relation.

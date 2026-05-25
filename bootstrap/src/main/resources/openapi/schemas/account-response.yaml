@@ -3,11 +3,14 @@ description: >
   Snapshot of a single account returned by GET /api/v1/accounts/{accountNumber}.
   Balance is serialised as a string to preserve the domain's 2-decimal scale
   invariant (JSON numbers strip trailing zeros on most clients). Status is the
-  uppercase value of the domain AccountStatus enum.
+  uppercase value of the domain AccountStatus enum. `_links` carries HAL
+  affordances pointing back at the resource itself and at the transfer
+  endpoint that can move money from this account.
 required:
   - accountNumber
   - balance
   - status
+  - _links
 properties:
   accountNumber:
     type: string
@@ -26,3 +29,14 @@ properties:
       - SUSPENDED
       - CLOSED
     example: ACTIVE
+  _links:
+    type: object
+    description: HAL link map for this account resource.
+    required:
+      - self
+      - transfers
+    properties:
+      self:
+        $ref: "./link.yaml"
+      transfers:
+        $ref: "./link.yaml"

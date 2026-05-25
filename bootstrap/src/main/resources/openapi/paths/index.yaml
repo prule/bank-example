@@ -1,0 +1,21 @@
+get:
+  tags:
+    - index
+  operationId: getIndex
+  summary: API discovery root
+  description: >
+    Returns the HAL link map advertising every root resource of the v1 API.
+    Clients use this endpoint to bootstrap interaction without hard-coding
+    URI templates. Responds with `application/hal+json` when the client
+    requests it, `application/json` otherwise; the JSON body is identical
+    between the two content-types.
+  responses:
+    "200":
+      description: API index resource with `_links`.
+      content:
+        application/hal+json:
+          schema:
+            $ref: "../schemas/index-response.yaml"
+        application/json:
+          schema:
+            $ref: "../schemas/index-response.yaml"
