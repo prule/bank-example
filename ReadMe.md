@@ -147,6 +147,22 @@ All metric tags draw from closed enums — no account number, journal id, or oth
 
 The actuator endpoints are exposed without authentication — same posture as `/actuator/health` today. The study app runs on localhost; production-style hardening is out of scope.
 
+### Generating dashboard load
+
+Every dashboard panel reads from a rate window, so an idle service renders as "No data". `infrastructure/observability/generate-load.sh` is a `bash` + `curl` script that issues a mixed stream of transfers against the dev seed accounts (`CUST-1001/1002/1003`) and populates every applicable panel within ~30 seconds. Outcome mix is roughly 70% success, 15% insufficient-funds, 15% same-account (HTTP 400 — exercises rate panels without inflating any classified outcome counter).
+
+```bash
+# default: 5 req/s for 120s against http://localhost:8080
+./infrastructure/observability/generate-load.sh
+
+# preview without issuing live traffic
+./infrastructure/observability/generate-load.sh --dry-run
+```
+
+Env-var overrides: `BANK_URL` (default `http://localhost:8080`), `RATE` (default `5`), `DURATION_SECONDS` (default `120`). The script requires the dev profile to be active — `SPRING_PROFILES_ACTIVE=dev ./gradlew :bootstrap:bootRun` — so the F09 seed creates the customer accounts it transfers between; the pre-flight check will refuse to issue traffic otherwise.
+
+**Local dev only.** The script issues real (in-memory) transfers against whatever instance `BANK_URL` resolves to. Never point it at any non-dev instance.
+
 ## How to read this repo
 
 If you want the business picture: `REQUIREMENTS.md`.
