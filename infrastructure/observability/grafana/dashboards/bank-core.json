@@ -115,9 +115,20 @@
       "type": "stat",
       "title": "Pending journals",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "gridPos": {"x": 0, "y": 32, "w": 8, "h": 6},
+      "gridPos": {"x": 0, "y": 32, "w": 6, "h": 6},
       "targets": [
         {"expr": "bank_journal_pending", "refId": "A"}
+      ],
+      "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []}
+    },
+    {
+      "id": 12,
+      "type": "stat",
+      "title": "Total transfers",
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "gridPos": {"x": 6, "y": 32, "w": 6, "h": 6},
+      "targets": [
+        {"expr": "sum(bank_transfer_executed_total)", "refId": "A"}
       ],
       "fieldConfig": {"defaults": {"unit": "short"}, "overrides": []}
     },
@@ -126,7 +137,7 @@
       "type": "timeseries",
       "title": "Account suspension rate",
       "datasource": {"type": "prometheus", "uid": "prometheus"},
-      "gridPos": {"x": 8, "y": 32, "w": 16, "h": 6},
+      "gridPos": {"x": 12, "y": 32, "w": 12, "h": 6},
       "targets": [
         {"expr": "sum by (cause) (rate(bank_account_suspended_total[1m]))", "legendFormat": "{{cause}}", "refId": "A"}
       ],
