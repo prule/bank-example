@@ -52,7 +52,7 @@ Starting from `v1-basic`, Claude was used to derive specification documents:
 - `SPECIFICATION.md` — implementation-level technical spec.
 - `specs/F01..F11` — one focused spec per feature, each with explicit acceptance criteria.
 
-The `v2-sdd` branch is the rebuild produced *from those specs only*, with no peeking at the v1 source. The point is to see whether spec-driven development with an AI agent — given precise, testable inputs — produces code that is closer to what a careful engineer would write, and to compare the resulting style and structure against the unguided v1.
+The `v2-openspec-claude` branch is the rebuild produced *from those specs only*, with no peeking at the v1 source. The point is to see whether spec-driven development with an AI agent — given precise, testable inputs — produces code that is closer to what a careful engineer would write, and to compare the resulting style and structure against the unguided v1.
 
 ### Future branches
 
