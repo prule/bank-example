@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 
 /**
@@ -86,7 +87,18 @@ public class ErrorEnvelopeMapper {
         ErrorEnvelope envelope = new ErrorEnvelope();
         envelope.setCode(code);
         envelope.setMessage(message);
-        envelope.setTimestamp(OffsetDateTime.now(clock).withOffsetSameInstant(ZoneOffset.UTC));
+        // Truncate to microseconds: the H2 `TIMESTAMP WITH TIME ZONE` column
+        // used by the idempotency store has microsecond precision (default
+        // TIMESTAMP precision in H2 v2.x). On JVMs where Clock.systemUTC()
+        // returns nanosecond precision (Linux Java 25), the in-memory envelope
+        // would carry 9-digit fractional seconds but the round-tripped one
+        // (read back for a replay) would carry 6, breaking the "first response
+        // == replay response" property the transfer-idempotency spec requires.
+        // Truncating here guarantees parity for both the storage round-trip
+        // and any test that compares the live envelope to a serialised copy.
+        envelope.setTimestamp(OffsetDateTime.now(clock)
+                .withOffsetSameInstant(ZoneOffset.UTC)
+                .truncatedTo(ChronoUnit.MICROS));
         return envelope;
     }
 
