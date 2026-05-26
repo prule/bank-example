@@ -34,13 +34,15 @@ Every error response from the public API SHALL have exactly three top-level fiel
 
 The system SHALL use the following canonical error codes with their stated HTTP status mappings:
 
-| Code                    | HTTP | Cause                                                       |
-|-------------------------|------|-------------------------------------------------------------|
-| `INSUFFICIENT_FUNDS`    | 400  | Debit would leave source account at or below zero           |
-| `ACCOUNT_INACTIVE`      | 400  | A non-Active account was targeted by an operation           |
-| `RESOURCE_NOT_FOUND`    | 404  | Account or other addressed resource does not exist          |
-| `BAD_REQUEST_PAYLOAD`   | 400  | Incoming payload violated declared constraints (validation) |
-| `INTERNAL_SERVER_ERROR` | 500  | Catch-all for unhandled failures                            |
+| Code                            | HTTP | Cause                                                       |
+|---------------------------------|------|-------------------------------------------------------------|
+| `INSUFFICIENT_FUNDS`            | 400  | Debit would leave source account at or below zero           |
+| `ACCOUNT_INACTIVE`              | 400  | A non-Active account was targeted by an operation           |
+| `RESOURCE_NOT_FOUND`            | 404  | Account or other addressed resource does not exist          |
+| `BAD_REQUEST_PAYLOAD`           | 400  | Incoming payload violated declared constraints (validation) |
+| `CONCURRENT_IDEMPOTENT_REQUEST` | 409  | Idempotency-Key collision while the first request is in flight |
+| `IDEMPOTENCY_KEY_REUSED`        | 422  | Idempotency-Key seen before with a different request body   |
+| `INTERNAL_SERVER_ERROR`         | 500  | Catch-all for unhandled failures                            |
 
 Codes SHALL NEVER be renamed once published; new codes MAY be added.
 
@@ -68,6 +70,16 @@ Codes SHALL NEVER be renamed once published; new codes MAY be added.
 
 - **WHEN** a client requests a URL with no matching handler (e.g. `GET /no/such/path`)
 - **THEN** the response is HTTP 404 with the canonical envelope body and `code = RESOURCE_NOT_FOUND`, NOT Spring's Whitelabel error page
+
+#### Scenario: Concurrent Idempotency-Key collision maps to 409 CONCURRENT_IDEMPOTENT_REQUEST
+
+- **WHEN** an endpoint rejects a request because a prior request bearing the same `Idempotency-Key` is still in flight
+- **THEN** the response is HTTP 409 with `code = CONCURRENT_IDEMPOTENT_REQUEST`
+
+#### Scenario: Idempotency-Key reuse with different body maps to 422 IDEMPOTENCY_KEY_REUSED
+
+- **WHEN** an endpoint rejects a request because the same `Idempotency-Key` was already used with a different request body
+- **THEN** the response is HTTP 422 with `code = IDEMPOTENCY_KEY_REUSED`
 
 ### Requirement: Payload validation produces BAD_REQUEST_PAYLOAD
 

@@ -110,6 +110,8 @@ Returns:
 
 Account responses carry their own `_links` (`self`, `transfers`) so a client holding an account can move money without consulting the contract again. HAL clients should send `Accept: application/hal+json`; naive clients get plain `application/json` with the same body.
 
+**Retry-safe transfers**: `POST /api/v1/transfers` accepts an optional `Idempotency-Key` header. Send a client-chosen unique token (UUID recommended) and the server persists the response keyed by that value; subsequent retries carrying the same key return the original response without re-executing the transfer. Reusing a key with a different request body is rejected with `422 IDEMPOTENCY_KEY_REUSED`; a concurrent in-flight retry returns `409 CONCURRENT_IDEMPOTENT_REQUEST`. See `openspec/specs/transfer-idempotency/spec.md` for the full contract.
+
 ## Observability
 
 The running service exposes Prometheus-format metrics at `/actuator/prometheus`, alongside the standard `/actuator/health`, `/actuator/info`, and `/actuator/metrics` endpoints. A Docker Compose stack under `infrastructure/observability/` brings up Prometheus and Grafana pre-wired to scrape it and render a `Bank Core` dashboard.

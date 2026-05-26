@@ -56,7 +56,7 @@ public class AccountModelAssembler {
         Link self = concreteLink(linkTo(methodOn(AccountController.class)
                 .lookupAccount(account.number().value())).toUri().getPath());
         Link transfers = concreteLink(linkTo(methodOn(TransferController.class)
-                .createTransfer(null)).toUri().getPath());
+                .createTransfer(null, null)).toUri().getPath());
         response.setLinks(new AccountResponseLinks(self, transfers));
         return response;
     }

@@ -1,8 +1,11 @@
 package com.bank.core.infrastructure.web.error;
 
 import com.bank.core.domain.AccountInactiveException;
+import com.bank.core.domain.IdempotencyConflictException;
+import com.bank.core.domain.IdempotencyKeyReuseException;
 import com.bank.core.domain.InsufficientFundsException;
 import com.bank.core.domain.InvalidAmountException;
+import com.bank.core.domain.InvalidIdempotencyKeyException;
 import com.bank.core.domain.ResourceNotFoundException;
 import com.bank.core.domain.SameAccountTransferException;
 import com.bank.core.dto.ErrorEnvelope;
@@ -138,6 +141,33 @@ public class GlobalExceptionHandler {
                 request.getMethod(), request.getRequestURI(), ex.account());
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(envelope(CodeEnum.BAD_REQUEST_PAYLOAD, ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidIdempotencyKeyException.class)
+    public ResponseEntity<ErrorEnvelope> handleInvalidIdempotencyKey(InvalidIdempotencyKeyException ex,
+                                                                     HttpServletRequest request) {
+        log.info("Invalid Idempotency-Key on {} {}: {}",
+                request.getMethod(), request.getRequestURI(), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(envelope(CodeEnum.BAD_REQUEST_PAYLOAD, ex.getMessage()));
+    }
+
+    @ExceptionHandler(IdempotencyConflictException.class)
+    public ResponseEntity<ErrorEnvelope> handleIdempotencyConflict(IdempotencyConflictException ex,
+                                                                    HttpServletRequest request) {
+        log.info("Idempotency conflict on {} {}: key={}",
+                request.getMethod(), request.getRequestURI(), ex.key());
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(envelope(CodeEnum.CONCURRENT_IDEMPOTENT_REQUEST, ex.getMessage()));
+    }
+
+    @ExceptionHandler(IdempotencyKeyReuseException.class)
+    public ResponseEntity<ErrorEnvelope> handleIdempotencyKeyReuse(IdempotencyKeyReuseException ex,
+                                                                    HttpServletRequest request) {
+        log.info("Idempotency-Key reused with different body on {} {}: key={}",
+                request.getMethod(), request.getRequestURI(), ex.key());
+        return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
+                .body(envelope(CodeEnum.IDEMPOTENCY_KEY_REUSED, ex.getMessage()));
     }
 
     @ExceptionHandler(Exception.class)

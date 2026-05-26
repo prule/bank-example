@@ -34,7 +34,7 @@ public class IndexModelAssembler {
     public IndexResponse toModel() {
         Link self = concreteLink(linkTo(methodOn(IndexController.class).getIndex()).toUri().getPath());
         Link accounts = new Link("/api/v1/accounts/{accountNumber}").templated(true);
-        Link transfers = concreteLink(linkTo(methodOn(TransferController.class).createTransfer(null)).toUri().getPath());
+        Link transfers = concreteLink(linkTo(methodOn(TransferController.class).createTransfer(null, null)).toUri().getPath());
         Link openapi = concreteLink(linkTo(methodOn(OpenApiController.class).getOpenApiDocument()).toUri().getPath());
         return new IndexResponse(new IndexResponseLinks(self, accounts, transfers, openapi));
     }

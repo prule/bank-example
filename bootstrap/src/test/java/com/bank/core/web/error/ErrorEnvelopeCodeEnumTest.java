@@ -17,6 +17,8 @@ class ErrorEnvelopeCodeEnumTest {
             "ACCOUNT_INACTIVE",
             "RESOURCE_NOT_FOUND",
             "BAD_REQUEST_PAYLOAD",
+            "CONCURRENT_IDEMPOTENT_REQUEST",
+            "IDEMPOTENCY_KEY_REUSED",
             "INTERNAL_SERVER_ERROR");
 
     @Test
