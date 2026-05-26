@@ -7,7 +7,10 @@
   ],
   "timezone": "Etc/UTC",
   "schedule": ["before 6am on monday"],
-  "baseBranches": ["v1-basic", "v2-openspec-claude"],
+  "baseBranchPatterns": [
+    "v1-basic",
+    "v2-openspec-claude"
+  ],
   "useBaseBranchConfig": "merge",
   "additionalBranchPrefix": "{{baseBranch}}-",
   "prConcurrentLimit": 5,
@@ -18,11 +21,11 @@
   },
   "packageRules": [
     {
-      "matchPackagePrefixes": [
-        "org.springframework.boot",
-        "org.springframework.cloud"
-      ],
-      "groupName": "spring-boot"
+      "groupName": "spring-boot",
+      "matchPackageNames": [
+        "org.springframework.boot{/,}**",
+        "org.springframework.cloud{/,}**"
+      ]
     },
     {
       "matchManagers": ["github-actions"],
@@ -43,9 +46,9 @@
     {
       "matchPackageNames": [
         "org.mockito:mockito-core",
-        "org.mockito:mockito-junit-jupiter"
+        "org.mockito:mockito-junit-jupiter",
+        "net.bytebuddy:{/,}**"
       ],
-      "matchPackagePrefixes": ["net.bytebuddy:"],
       "dependencyDashboardApproval": true
     },
     {
