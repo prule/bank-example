@@ -33,10 +33,15 @@ bank:
     # is self-documenting about which clearing-account row F08 funds from.
     number: CLEARING-000
   journal-verification:
-    # Fast cadence so integration tests can Awaitility-poll a sweep within
-    # a few hundred ms rather than the production 10 s.
+    # F10 stays effectively dormant under the default `test` profile: an
+    # always-firing background scheduler races test @BeforeEach wipes and
+    # produces sporadic off-by-one journal counts on tests that don't care
+    # about it (e.g. TransferControllerTest, OpenAccountServiceIntegrationTest).
+    # F10's own integration test (JournalVerificationIntegrationTest)
+    # overrides initial-delay-ms back to 0 and uses an isolated H2 URL via
+    # @SpringBootTest(properties=...) — same pattern balance-drift uses below.
     fixed-delay-ms: 200
-    initial-delay-ms: 0
+    initial-delay-ms: 3600000
     page-size: 50
   balance-drift:
     # F11 stays effectively dormant under the default `test` profile: many
