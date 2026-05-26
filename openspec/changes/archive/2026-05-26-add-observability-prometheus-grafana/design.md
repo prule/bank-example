@@ -31,20 +31,36 @@ Chose `io.micrometer:micrometer-registry-prometheus` (pulled transitively via th
 
 **Alternatives considered:** writing a hand-rolled `/metrics` controller that exposes the OpenMetrics text format directly. Rejected — Spring Boot already ships the integration and gives free JVM/HTTP/datasource metrics; reinventing it would be study-noise.
 
-### Decision 2: Custom metrics live in `application/`, not `domain/`
+### Decision 2: Custom metrics live at the **infrastructure boundary**, not inside `application/` use cases
 
-Domain classes (`Account`, `JournalEntry`, `Movement`) stay framework-free. Custom metric increments happen in:
-- Application use cases (`TransferFundsUseCase`) — wrap the call to the domain in a `Timer.Sample` and increment the per-outcome counter based on the typed `TransferResult`.
-- Scheduler-adjacent collaborators (`JournalVerifier`, `BalanceDriftDetector`) — increment counters when their plain-Java decision logic returns.
-- Lock acquisition wrappers (`JvmAccountLocker`, `DbAccountLocker`) — already have a clean entry point; wrap with a `Timer` there.
+This pivots from the initial proposal. Reading the code revealed that the `application/` module is currently zero-framework — `application/build.gradle.kts` declares only `:domain` and `slf4j-api`, and `ModuleBoundaryTest.applicationHasNoFrameworkDependencies` is an ArchUnit rule that already pins this discipline. Adding `io.micrometer:micrometer-core` to that module and threading `MeterRegistry` into `TransferFunds` / `VerifyPendingJournals` / `DetectBalanceDrift` would be a substantial widening of the framework footprint inside a module the project went out of its way to keep pure.
 
-Plain-Java decision components stay testable without a Spring context: they take a `MeterRegistry` (which is a Micrometer interface, not a Spring annotation) by constructor, and unit tests pass a `SimpleMeterRegistry`. Micrometer is a sufficiently neutral dependency to tolerate at the use-case layer without violating boundary discipline — but the ArchUnit rule forbids it from the `domain` module to make the line explicit.
+The existing codebase already shows the right pattern: `BalanceDriftAudit` is a thin Spring `@Service` in `infrastructure/audit/` that wraps the framework-free `DetectBalanceDrift` and owns the `@Transactional` boundary. Schedulers (`JournalVerificationScheduler`, `BalanceDriftScheduler`) sit in `infrastructure/scheduling/` and already receive `SweepReport` / `DriftReport` from their use cases. Lock adapters (`JvmAccountLocker`, `DbAccountLocker`) are in `infrastructure/concurrency/`.
 
-**Alternatives considered:** Spring events with a single metrics listener. Rejected — adds an extra indirection (publish → listen → increment) for no benefit; events fire-and-forget makes failures invisible; harder to unit test causality.
+So custom metric increments live entirely in `infrastructure/`:
+- **Transfer**: `TransferController.createTransfer(...)` already owns the `@Transactional` boundary. Wrap the `transferFunds.transfer(command)` call with a `Timer.Sample`; classify the outcome by caught-exception type (`InsufficientFundsException` → `insufficient_funds`, `AccountInactiveException` → `account_suspended`, `LockAcquisitionTimeoutException` → `lock_timeout`, no exception → `success`); re-throw so error handling and rollback semantics stay unchanged.
+- **Lock acquisition**: time the acquisition phase only (not the runnable). In `JvmAccountLocker`, wrap the two `acquire(...)` calls with a single `Timer` sample so the timer measures from "start acquiring first lock" to "second lock acquired (or timeout)". In `DbAccountLocker`, wrap the single `SELECT FOR UPDATE` `jdbcTemplate.query(...)` call.
+- **Journal verification**: in `JournalVerificationScheduler.tick()`, after `useCase.sweep()` returns, increment `bank.journal.verification{outcome="verified"}` by `report.verified()` and `{outcome="failed"}` by `report.failed()`; increment `bank.account.suspended{cause="journal_failure"}` by `report.suspendedFromCascade()` (new SweepReport field — see below).
+- **Balance drift**: in `BalanceDriftScheduler.tick()`, after `audit.audit()` returns, increment `bank.balance-drift.detected` and `bank.account.suspended{cause="drift"}` by `report.drifted()`.
+
+This keeps `application/` framework-free; the only `application/` touch is extending `SweepReport` (a plain record) with one new int field (see Decision 8 below).
+
+**Alternatives considered:**
+- *Original plan: thread `MeterRegistry` into use cases.* Rejected on widening the framework footprint of `application/`. Decision 2 in the initial draft was wrong to accept this.
+- *Spring events with a single metrics listener.* Rejected as before — extra indirection, fire-and-forget hides failures, harder to test.
+- *A `MeteredTransferFunds` decorator in infrastructure wrapping `TransferFunds`.* Cleaner in isolation but adds a class and re-routes wiring in `BankCoreApplication`; the existing controller is already the right boundary because `@Transactional` already lives there.
+
+### Decision 8: Extend `SweepReport` with `suspendedFromCascade` so the scheduler can surface journal-failure suspensions
+
+`SweepReport` today carries `processed`, `verified`, `failed`, `errored`. The spec scenario "Journal failure cascades to suspension" requires `bank.account.suspended{cause="journal_failure"}` to tick by the number of accounts the cascade actually suspended — which today is counted nowhere. Adding a fifth field `suspendedFromCascade: int` is a one-line record extension; `VerifyPendingJournals.suspendIfActive(...)` returns a boolean that the caller can sum.
+
+This is the only change to `application/` in the entire observability stack. No new dependency, no new framework annotation — just one more counter on an existing plain-Java record. Touches the SweepReport invariant only by adding an unrelated counter alongside the existing ones (the invariant `processed == verified + failed + errored` is unchanged).
 
 ### Decision 3: Gauge for `bank.journal.pending` is registered with a supplier, not polled by a scheduler
 
-Micrometer's gauge takes a function; on scrape, the function is invoked. The supplier delegates to `journalEntryRepository.countPending()`. No new scheduler. Scrape cadence (Prometheus default 15 s) is the polling cadence.
+Micrometer's gauge takes a function; on scrape, the function is invoked. The supplier delegates to a new port method on `JournalEntries.countByStatus(VerificationStatus)` — a plain-Java method added to the existing application-layer port; the JPA adapter implements it with a single `COUNT(*)` query. No new scheduler. Scrape cadence (Prometheus default 15 s) is the polling cadence.
+
+Registration happens in a small `JournalPendingGauge` `@Component` under `infrastructure/observability/` whose `@PostConstruct` registers a Micrometer gauge against `MeterRegistry`, with the supplier closure capturing the `JournalEntries` port. Keeps the gauge wiring out of the use case and the application module.
 
 **Trade-off:** every scrape issues one cheap `COUNT(*) WHERE status = 'PENDING'` query. Acceptable; if this becomes hot the verifier itself can publish the value after each tick.
 

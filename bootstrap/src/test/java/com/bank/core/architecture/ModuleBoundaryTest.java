@@ -85,6 +85,26 @@ class ModuleBoundaryTest {
     }
 
     @Test
+    void domainHasNoMicrometerDependency() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("com.bank.core.domain..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("io.micrometer..")
+                .allowEmptyShould(true);
+        rule.check(classes);
+    }
+
+    @Test
+    void applicationHasNoMicrometerDependency() {
+        ArchRule rule = noClasses()
+                .that().resideInAPackage("com.bank.core.application..")
+                .should().dependOnClassesThat()
+                .resideInAPackage("io.micrometer..")
+                .allowEmptyShould(true);
+        rule.check(classes);
+    }
+
+    @Test
     void noClassesOutsideConcurrencyAdapterMayUseTransactionSynchronizationManager() {
         ArchRule rule = noClasses()
                 .that().resideOutsideOfPackage("com.bank.core.infrastructure.concurrency..")

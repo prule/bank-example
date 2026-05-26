@@ -1,0 +1,16 @@
+# File-based dashboard provisioning.
+# Grafana picks every *.json under the listed path on container start.
+
+apiVersion: 1
+
+providers:
+  - name: bank-core
+    orgId: 1
+    folder: ""
+    type: file
+    disableDeletion: false
+    editable: true
+    updateIntervalSeconds: 30
+    options:
+      path: /etc/grafana/dashboards
+      foldersFromFilesStructure: false

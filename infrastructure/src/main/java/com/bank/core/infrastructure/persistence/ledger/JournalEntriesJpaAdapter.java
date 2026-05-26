@@ -50,6 +50,12 @@ class JournalEntriesJpaAdapter implements JournalEntries {
 
     @Override
     @Transactional(readOnly = true)
+    public long countByStatus(VerificationStatus status) {
+        return repository.countByVerificationStatus(status);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public boolean isBalanced(JournalEntryId id) {
         if (!repository.existsById(id.value())) {
             return false;

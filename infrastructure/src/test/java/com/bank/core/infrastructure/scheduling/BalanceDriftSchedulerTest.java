@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.bank.core.application.audit.DriftReport;
 import com.bank.core.infrastructure.audit.BalanceDriftAudit;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ class BalanceDriftSchedulerTest {
     @BeforeEach
     void setUp() {
         audit = mock(BalanceDriftAudit.class);
-        scheduler = new BalanceDriftScheduler(audit);
+        scheduler = new BalanceDriftScheduler(audit, new SimpleMeterRegistry());
 
         appender = new ListAppender<>();
         appender.start();

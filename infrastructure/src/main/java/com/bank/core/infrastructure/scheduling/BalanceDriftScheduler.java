@@ -2,6 +2,8 @@ package com.bank.core.infrastructure.scheduling;
 
 import com.bank.core.application.audit.DriftReport;
 import com.bank.core.infrastructure.audit.BalanceDriftAudit;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -30,6 +32,11 @@ import java.util.Objects;
  * {@code TaskScheduler} logs uncaught exceptions at WARN and re-fires the
  * next tick at the configured delay. A try/catch here would swallow the
  * signal an operator needs.
+ *
+ * <h2>Observability counters</h2>
+ * Counters are registered once in the constructor and incremented from the
+ * {@link DriftReport} after each tick (not inside {@code DetectBalanceDrift})
+ * so the framework-free application module never sees Micrometer.
  */
 @Component
 public class BalanceDriftScheduler {
@@ -37,9 +44,19 @@ public class BalanceDriftScheduler {
     private static final Logger LOG = LoggerFactory.getLogger(BalanceDriftScheduler.class);
 
     private final BalanceDriftAudit audit;
+    private final Counter driftDetectedCounter;
+    private final Counter driftSuspendedCounter;
 
-    public BalanceDriftScheduler(BalanceDriftAudit audit) {
+    public BalanceDriftScheduler(BalanceDriftAudit audit, MeterRegistry registry) {
         this.audit = Objects.requireNonNull(audit, "audit cannot be null");
+        Objects.requireNonNull(registry, "registry cannot be null");
+        this.driftDetectedCounter = Counter.builder("bank.balance-drift.detected")
+                .description("Accounts flagged by the balance-drift detector.")
+                .register(registry);
+        this.driftSuspendedCounter = Counter.builder("bank.account.suspended")
+                .description("Accounts suspended by a system-driven cause.")
+                .tag("cause", "drift")
+                .register(registry);
     }
 
     @Scheduled(
@@ -47,6 +64,8 @@ public class BalanceDriftScheduler {
             initialDelayString = "${bank.balance-drift.initial-delay-ms:15000}")
     public void tick() {
         DriftReport report = audit.audit();
+        driftDetectedCounter.increment(report.drifted());
+        driftSuspendedCounter.increment(report.drifted());
         LOG.info("balance drift tick: floor={}, ceiling={}, inspected={}, drifted={}",
                 report.floor(), report.ceiling(), report.inspected(), report.drifted());
     }

@@ -6,6 +6,7 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.read.ListAppender;
 import com.bank.core.application.ledger.SweepReport;
 import com.bank.core.application.ledger.VerifyPendingJournals;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -32,7 +33,7 @@ class JournalVerificationSchedulerTest {
     @BeforeEach
     void setUp() {
         useCase = mock(VerifyPendingJournals.class);
-        scheduler = new JournalVerificationScheduler(useCase);
+        scheduler = new JournalVerificationScheduler(useCase, new SimpleMeterRegistry());
 
         appender = new ListAppender<>();
         appender.start();
@@ -47,14 +48,14 @@ class JournalVerificationSchedulerTest {
 
     @Test
     void tick_callsUseCaseOnce_andLogsSummary() {
-        when(useCase.sweep()).thenReturn(new SweepReport(2, 1, 1, 0));
+        when(useCase.sweep()).thenReturn(new SweepReport(2, 1, 1, 0, 2));
 
         scheduler.tick();
 
         List<ILoggingEvent> infos = appender.list.stream()
                 .filter(e -> e.getLevel() == Level.INFO).toList();
         assertEquals(1, infos.size(), "expected exactly one INFO line");
-        assertEquals("journal verification tick: processed=2, verified=1, failed=1, errored=0",
+        assertEquals("journal verification tick: processed=2, verified=1, failed=1, errored=0, cascadeSuspended=2",
                 infos.get(0).getFormattedMessage());
     }
 
@@ -67,7 +68,7 @@ class JournalVerificationSchedulerTest {
         List<ILoggingEvent> infos = appender.list.stream()
                 .filter(e -> e.getLevel() == Level.INFO).toList();
         assertEquals(1, infos.size());
-        assertEquals("journal verification tick: processed=0, verified=0, failed=0, errored=0",
+        assertEquals("journal verification tick: processed=0, verified=0, failed=0, errored=0, cascadeSuspended=0",
                 infos.get(0).getFormattedMessage());
     }
 

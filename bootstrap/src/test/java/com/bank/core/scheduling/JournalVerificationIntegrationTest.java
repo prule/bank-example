@@ -217,10 +217,14 @@ class JournalVerificationIntegrationTest {
     @Test
     void tickSummaryLogIsEmittedEachTick() {
         Pattern summary = Pattern.compile(
-                "^journal verification tick: processed=\\d+, verified=\\d+, failed=\\d+, errored=\\d+$");
+                "^journal verification tick: processed=\\d+, verified=\\d+, failed=\\d+, errored=\\d+, cascadeSuspended=\\d+$");
 
         await().atMost(5, TimeUnit.SECONDS).pollInterval(100, TimeUnit.MILLISECONDS).until(() -> {
-            long heartbeats = schedulerAppender.list.stream()
+            // Snapshot the appender's mutable list to avoid a
+            // ConcurrentModificationException when the scheduler fires a new
+            // tick mid-stream.
+            java.util.List<ILoggingEvent> snapshot = new java.util.ArrayList<>(schedulerAppender.list);
+            long heartbeats = snapshot.stream()
                     .filter(e -> e.getLevel() == Level.INFO)
                     .map(ILoggingEvent::getFormattedMessage)
                     .filter(msg -> summary.matcher(msg).matches())

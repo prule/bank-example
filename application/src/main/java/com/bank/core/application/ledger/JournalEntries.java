@@ -36,5 +36,13 @@ public interface JournalEntries {
 
     List<JournalEntry> findByStatus(VerificationStatus status, int limit);
 
+    /**
+     * Count of journal entries currently in the given status. Read-only;
+     * implemented by adapters as a single {@code COUNT(*)} query. Consumed
+     * by the {@code bank.journal.pending} Micrometer gauge (registered in
+     * the infrastructure module against a closure capturing this port).
+     */
+    long countByStatus(VerificationStatus status);
+
     boolean isBalanced(JournalEntryId id);
 }

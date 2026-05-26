@@ -84,9 +84,11 @@ public final class VerifyPendingJournals {
         int verified = 0;
         int failed = 0;
         int errored = 0;
+        int suspendedFromCascade = 0;
         for (JournalEntry entry : page) {
             try {
-                processOne(entry);
+                int cascadeCount = processOne(entry);
+                suspendedFromCascade += cascadeCount;
                 if (entry.status() == VerificationStatus.VERIFIED) {
                     verified++;
                 } else {
@@ -100,36 +102,46 @@ public final class VerifyPendingJournals {
                 errored++;
             }
         }
-        return new SweepReport(page.size(), verified, failed, errored);
+        return new SweepReport(page.size(), verified, failed, errored, suspendedFromCascade);
     }
 
-    private void processOne(JournalEntry entry) {
+    /** Returns the count of accounts the FAILED-cascade actually suspended (0 for a VERIFIED outcome). */
+    private int processOne(JournalEntry entry) {
         boolean balanced = journals.isBalanced(entry.id());
         if (balanced) {
             entry.markVerified();
             journals.save(entry);
-            return;
+            return 0;
         }
         entry.markFailed();
         journals.save(entry);
         LOG.error("journal verification failed: id={} — unbalanced; suspending touched accounts", entry.id());
-        suspendTouchedAccounts(entry);
+        return suspendTouchedAccounts(entry);
     }
 
-    private void suspendTouchedAccounts(JournalEntry entry) {
+    private int suspendTouchedAccounts(JournalEntry entry) {
         LinkedHashSet<AccountId> uniqueIds = new LinkedHashSet<>();
         for (Movement movement : entry.movements()) {
             uniqueIds.add(movement.accountId());
         }
+        int suspended = 0;
         for (AccountId id : uniqueIds) {
-            accounts.findById(id).ifPresent(account -> suspendIfActive(account));
+            // Optional<Account>.map(...).orElse(0) keeps the missing-account
+            // defensive path silent and unbilled toward the cascade count.
+            suspended += accounts.findById(id)
+                    .map(this::suspendIfActive)
+                    .orElse(0);
         }
+        return suspended;
     }
 
-    private void suspendIfActive(Account account) {
+    /** Returns 1 when this call actually flipped the account to SUSPENDED, 0 otherwise. */
+    private int suspendIfActive(Account account) {
         if (account.status() == AccountStatus.ACTIVE) {
             account.suspend();
             accounts.save(account);
+            return 1;
         }
+        return 0;
     }
 }

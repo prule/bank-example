@@ -3,6 +3,8 @@ package com.bank.core.infrastructure.concurrency;
 import com.bank.core.application.concurrency.AccountLocker;
 import com.bank.core.domain.AccountNumber;
 import com.bank.core.domain.LockAcquisitionTimeoutException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -91,12 +93,23 @@ public final class DbAccountLocker implements AccountLocker {
 
     private final long waitMs;
     private final JdbcTemplate jdbcTemplate;
+    private final Timer acquisitionTimer;
     private volatile String dialect; // populated lazily on first call
 
-    public DbAccountLocker(TransferLockingProperties properties, JdbcTemplate jdbcTemplate) {
+    public DbAccountLocker(TransferLockingProperties properties,
+                           JdbcTemplate jdbcTemplate,
+                           MeterRegistry registry) {
         Objects.requireNonNull(properties, "properties cannot be null");
         this.jdbcTemplate = Objects.requireNonNull(jdbcTemplate, "jdbcTemplate cannot be null");
+        Objects.requireNonNull(registry, "registry cannot be null");
         this.waitMs = properties.lockWaitMs();
+        // Timer measures the single SELECT ... FOR UPDATE round-trip
+        // (acquisition only; not the runnable). Records on both success
+        // and the timeout-classification path.
+        this.acquisitionTimer = Timer.builder("bank.lock.acquisition")
+                .description("Wall-clock duration of paired-lock acquisition.")
+                .tag("strategy", "db")
+                .register(registry);
     }
 
     public long waitMs() {
@@ -139,13 +152,16 @@ public final class DbAccountLocker implements AccountLocker {
         String sql = "SELECT id FROM account WHERE account_number IN ("
                 + placeholders + ") ORDER BY account_number FOR UPDATE";
 
+        Timer.Sample acquisitionSample = Timer.start();
         try {
             jdbcTemplate.query(sql, ps -> {
                 for (int i = 0; i < nums.size(); i++) {
                     ps.setString(i + 1, nums.get(i));
                 }
             }, rs -> null);
+            acquisitionSample.stop(acquisitionTimer);
         } catch (DataAccessException ex) {
+            acquisitionSample.stop(acquisitionTimer);
             if (isLockTimeout(ex)) {
                 LockAcquisitionTimeoutException lat =
                         new LockAcquisitionTimeoutException(first, second, waitMs);

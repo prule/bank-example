@@ -1,0 +1,49 @@
+# Observability stack for bank-core.
+#
+# Launch:   docker compose -f infrastructure/observability/docker-compose.yaml up -d
+# Tear down: docker compose -f infrastructure/observability/docker-compose.yaml down
+#
+# Scrapes the bank-core app running on the HOST (not in this compose network)
+# at host.docker.internal:8080 — see prometheus/prometheus.yml.
+#
+# Linux note: native host.docker.internal does not exist on Linux. The
+# extra_hosts entry below maps it to the host-gateway address (Docker 20.10+),
+# so the same compose file works on macOS, Windows, and Linux.
+
+services:
+
+  prometheus:
+    image: prom/prometheus:v3.0.1
+    container_name: bank-core-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    extra_hosts:
+      # Required for Linux. On macOS/Windows Docker Desktop already provides
+      # host.docker.internal; the explicit mapping is harmless on those hosts.
+      - "host.docker.internal:host-gateway"
+    networks:
+      - bank-observability
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    container_name: bank-core-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      # Default first-login flow: admin / admin, prompt to change at first login.
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - bank-observability
+
+networks:
+  bank-observability:
+    driver: bridge

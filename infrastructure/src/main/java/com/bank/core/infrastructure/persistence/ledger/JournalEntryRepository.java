@@ -20,6 +20,13 @@ interface JournalEntryRepository extends JpaRepository<JournalEntryEntity, UUID>
     List<JournalEntryEntity> findByStatusOrdered(@Param("status") VerificationStatus status,
                                                  Pageable pageable);
 
+    /**
+     * Single-aggregate count used by the {@code bank.journal.pending}
+     * Micrometer gauge. Spring Data derives the query from the method name
+     * — no @Query needed.
+     */
+    long countByVerificationStatus(VerificationStatus status);
+
     @Query("""
            SELECT COALESCE(SUM(CASE WHEN m.movementType = com.bank.core.domain.MovementType.CREDIT
                                     THEN m.amount ELSE -m.amount END), 0)

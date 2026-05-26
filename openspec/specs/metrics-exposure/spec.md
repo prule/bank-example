@@ -1,4 +1,10 @@
-## ADDED Requirements
+# Metrics Exposure
+
+## Purpose
+
+The HTTP-scrape contract for the bank service: which actuator endpoints are web-exposed, which custom `bank_*` metric names and tags the service emits, and the cardinality bounds those tags must respect. Owns the Prometheus surface so operators and dashboards depend on a stable set of metric names. The instrumentation lives in the `infrastructure` module — neither `domain` nor `application` may depend on Micrometer (ArchUnit-enforced).
+
+## Requirements
 
 ### Requirement: Prometheus scrape endpoint
 
@@ -40,26 +46,35 @@ The service SHALL emit the Spring Boot / Micrometer default JVM and HTTP server 
 
 ### Requirement: Custom transfer metrics
 
-The service SHALL emit a counter and a timer for every attempted fund transfer.
+The service SHALL emit a counter and a timer for every attempted fund transfer. The instrumentation SHALL live at the infrastructure boundary that owns the transfer's `@Transactional` (currently `TransferController.createTransfer(...)`), classifying the outcome by caught-exception type and re-throwing so the existing error-handling and rollback semantics are unchanged.
 
-The counter SHALL be named `bank.transfer.executed` (Prometheus name `bank_transfer_executed_total`) and SHALL be tagged `outcome` with one of: `success`, `insufficient_funds`, `account_suspended`, `lock_timeout`. The timer SHALL be named `bank.transfer.duration` (Prometheus name `bank_transfer_duration_seconds`).
+The counter SHALL be named `bank.transfer.executed` (Prometheus name `bank_transfer_executed_total`) and SHALL be tagged `outcome` with one of: `success`, `insufficient_funds`, `account_suspended`, `lock_timeout`. The timer SHALL be named `bank.transfer.duration` (Prometheus name `bank_transfer_duration_seconds`) and SHALL record the wall-clock duration of the use-case call, regardless of outcome.
 
 #### Scenario: Successful transfer increments the success counter
-- **WHEN** a transfer completes with `TransferResult.Success`
+- **WHEN** a call to the transfer use case returns without throwing
 - **THEN** `bank_transfer_executed_total{outcome="success"}` SHALL increase by exactly 1
 - **AND** `bank_transfer_duration_seconds_count` SHALL increase by exactly 1
 
 #### Scenario: Insufficient-funds transfer increments the insufficient_funds counter
-- **WHEN** a transfer is rejected because the source account balance is below the requested amount
+- **WHEN** the transfer use case throws `com.bank.core.domain.InsufficientFundsException`
 - **THEN** `bank_transfer_executed_total{outcome="insufficient_funds"}` SHALL increase by exactly 1
+- **AND** the exception SHALL be re-thrown so the surrounding transaction rolls back and the existing error envelope is produced
 
 #### Scenario: Suspended-account transfer increments the account_suspended counter
-- **WHEN** a transfer is rejected because either party is not in `ACTIVE` status
+- **WHEN** the transfer use case throws `com.bank.core.domain.AccountInactiveException`
 - **THEN** `bank_transfer_executed_total{outcome="account_suspended"}` SHALL increase by exactly 1
+- **AND** the exception SHALL be re-thrown unchanged
 
 #### Scenario: Lock-timeout transfer increments the lock_timeout counter
-- **WHEN** a transfer fails with `LockAcquisitionTimeoutException`
+- **WHEN** the transfer use case throws `com.bank.core.domain.LockAcquisitionTimeoutException`
 - **THEN** `bank_transfer_executed_total{outcome="lock_timeout"}` SHALL increase by exactly 1
+- **AND** the exception SHALL be re-thrown unchanged
+
+#### Scenario: Other exceptions do not increment any outcome counter
+- **WHEN** the transfer use case throws any exception other than the four classified above (e.g. `SameAccountTransferException`, `ResourceNotFoundException`, or an unexpected `RuntimeException`)
+- **THEN** no `bank_transfer_executed_total{outcome=...}` series SHALL increase
+- **AND** the exception SHALL be re-thrown unchanged
+- **AND** `bank_transfer_duration_seconds_count` MAY increase by 1 (the timer records every attempt regardless of outcome)
 
 ### Requirement: Custom lock-acquisition metric
 
@@ -110,11 +125,16 @@ Custom metric tags SHALL draw their values from a closed, compile-time-known set
 - **WHEN** the Prometheus endpoint is scraped after 1,000 distinct transfers across 100 distinct accounts
 - **THEN** the cardinality of every `bank_*` series SHALL be bounded by the product of its declared tag enums (e.g. `bank_transfer_executed_total` SHALL have at most 4 series — one per `outcome` value)
 
-### Requirement: Domain module independence from Micrometer
+### Requirement: Domain and application modules independent of Micrometer
 
-The `domain` Gradle module SHALL NOT depend on `io.micrometer` packages at compile time. All metric instrumentation SHALL live in the `application` or `infrastructure` modules.
+Neither the `domain` nor the `application` Gradle module SHALL depend on `io.micrometer` packages at compile time. All metric instrumentation SHALL live in the `infrastructure` module.
 
 #### Scenario: ArchUnit forbids domain → Micrometer
 - **WHEN** the ArchUnit boundary-discipline test suite runs
 - **THEN** a rule SHALL assert that no class under `com.bank.core.domain..` imports any type from `io.micrometer..`
+- **AND** that rule SHALL pass
+
+#### Scenario: ArchUnit forbids application → Micrometer
+- **WHEN** the ArchUnit boundary-discipline test suite runs
+- **THEN** a rule SHALL assert that no class under `com.bank.core.application..` imports any type from `io.micrometer..`
 - **AND** that rule SHALL pass

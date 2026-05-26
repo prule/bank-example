@@ -3,6 +3,8 @@ package com.bank.core.infrastructure.concurrency;
 import com.bank.core.application.concurrency.AccountLocker;
 import com.bank.core.domain.AccountNumber;
 import com.bank.core.domain.LockAcquisitionTimeoutException;
+import io.micrometer.core.instrument.MeterRegistry;
+import io.micrometer.core.instrument.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -48,9 +50,17 @@ public final class JvmAccountLocker implements AccountLocker {
 
     private final ConcurrentHashMap<AccountNumber, ReentrantLock> locks = new ConcurrentHashMap<>();
     private final long waitMs;
+    private final Timer acquisitionTimer;
 
-    public JvmAccountLocker(TransferLockingProperties properties) {
+    public JvmAccountLocker(TransferLockingProperties properties, MeterRegistry registry) {
         this.waitMs = properties.lockWaitMs();
+        // Timer measures from "start acquiring first lock" to "second lock
+        // acquired or timeout" — i.e. the acquisition phase only, not the
+        // runnable. Records on both success and LockAcquisitionTimeoutException.
+        this.acquisitionTimer = Timer.builder("bank.lock.acquisition")
+                .description("Wall-clock duration of paired-lock acquisition.")
+                .tag("strategy", "jvm")
+                .register(registry);
     }
 
     public long waitMs() {
@@ -84,8 +94,14 @@ public final class JvmAccountLocker implements AccountLocker {
 
         boolean sameAccount = first.equals(second);
 
+        Timer.Sample acquisitionSample = Timer.start();
         ReentrantLock firstLock = locks.computeIfAbsent(first, k -> new ReentrantLock());
-        acquire(firstLock, first, second);
+        try {
+            acquire(firstLock, first, second);
+        } catch (RuntimeException | Error ex) {
+            acquisitionSample.stop(acquisitionTimer);
+            throw ex;
+        }
 
         ReentrantLock secondLock;
         if (sameAccount) {
@@ -96,9 +112,11 @@ public final class JvmAccountLocker implements AccountLocker {
                 acquire(secondLock, first, second);
             } catch (RuntimeException | Error ex) {
                 firstLock.unlock();
+                acquisitionSample.stop(acquisitionTimer);
                 throw ex;
             }
         }
+        acquisitionSample.stop(acquisitionTimer);
 
         TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
             @Override

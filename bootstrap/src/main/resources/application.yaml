@@ -30,7 +30,9 @@ management:
   endpoints:
     web:
       exposure:
-        include: health
+        # health,info,metrics retained for general operability; prometheus is
+        # the scrape endpoint consumed by infrastructure/observability/.
+        include: health,info,metrics,prometheus
   endpoint:
     health:
       show-details: always

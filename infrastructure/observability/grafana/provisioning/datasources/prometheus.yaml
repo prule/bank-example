@@ -1,0 +1,17 @@
+# File-based datasource provisioning.
+# Picked up by Grafana on every container start.
+
+apiVersion: 1
+
+datasources:
+  - name: Prometheus
+    # Explicit uid — the Bank Core dashboard JSON references it by uid so
+    # the panels render without "Datasource not found".
+    uid: prometheus
+    type: prometheus
+    access: proxy
+    url: http://prometheus:9090
+    isDefault: true
+    editable: false
+    jsonData:
+      timeInterval: 15s

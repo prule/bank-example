@@ -11,6 +11,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-hateoas")
 
+    // Micrometer core — provides MeterRegistry, Timer, Counter, Tags used by
+    // infrastructure-boundary instrumentation (TransferMetrics, JournalPendingGauge,
+    // schedulers, locker adapters). The Prometheus registry sits on the bootstrap
+    // classpath; this module only needs the core interfaces. Version managed by
+    // the Spring Boot BOM applied in the root build.
+    implementation("io.micrometer:micrometer-core")
+
     // Used by OpenApiController to load and inline-resolve the canonical contract at startup.
     implementation("io.swagger.parser.v3:swagger-parser:2.1.22")
 

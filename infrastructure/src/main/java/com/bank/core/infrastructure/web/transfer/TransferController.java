@@ -2,8 +2,8 @@ package com.bank.core.infrastructure.web.transfer;
 
 import com.bank.core.api.TransfersApi;
 import com.bank.core.application.transfer.TransferCommand;
-import com.bank.core.application.transfer.TransferFunds;
 import com.bank.core.dto.TransferRequest;
+import com.bank.core.infrastructure.observability.TransferMetrics;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
@@ -26,11 +26,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TransferController implements TransfersApi {
 
-    private final TransferFunds transferFunds;
+    private final TransferMetrics transferMetrics;
     private final TransferRequestMapper mapper;
 
-    public TransferController(TransferFunds transferFunds, TransferRequestMapper mapper) {
-        this.transferFunds = transferFunds;
+    // Depends on TransferMetrics rather than TransferFunds directly so every
+    // transfer attempt is timed and classified by outcome (bank.transfer.*).
+    // TransferMetrics delegates to the framework-free TransferFunds use case
+    // and re-throws every exception so error-handling and rollback semantics
+    // stay unchanged.
+    public TransferController(TransferMetrics transferMetrics, TransferRequestMapper mapper) {
+        this.transferMetrics = transferMetrics;
         this.mapper = mapper;
     }
 
@@ -38,7 +43,7 @@ public class TransferController implements TransfersApi {
     @Transactional
     public ResponseEntity<Void> createTransfer(TransferRequest request) {
         TransferCommand command = mapper.toCommand(request);
-        transferFunds.transfer(command);
+        transferMetrics.transfer(command);
         return ResponseEntity.noContent().build();
     }
 }

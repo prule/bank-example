@@ -122,7 +122,7 @@ class VerifyPendingJournalsTest {
 
         SweepReport report = useCase(50).sweep();
 
-        assertEquals(new SweepReport(0, 0, 0, 0), report);
+        assertEquals(new SweepReport(0, 0, 0, 0, 0), report);
         assertInvariant(report);
         verify(journals, never()).save(any());
         verify(accounts, never()).findById(any());
@@ -153,7 +153,7 @@ class VerifyPendingJournalsTest {
         assertEquals(VerificationStatus.VERIFIED, j1.status());
         assertEquals(VerificationStatus.VERIFIED, j2.status());
         assertEquals(VerificationStatus.VERIFIED, j3.status());
-        assertEquals(new SweepReport(3, 3, 0, 0), report);
+        assertEquals(new SweepReport(3, 3, 0, 0, 0), report);
         assertInvariant(report);
     }
 
@@ -176,7 +176,8 @@ class VerifyPendingJournalsTest {
         verify(accounts).save(b);
         assertEquals(AccountStatus.SUSPENDED, a.status());
         assertEquals(AccountStatus.SUSPENDED, b.status());
-        assertEquals(new SweepReport(1, 0, 1, 0), report);
+        // Both accounts flipped ACTIVE → SUSPENDED, so suspendedFromCascade = 2.
+        assertEquals(new SweepReport(1, 0, 1, 0, 2), report);
         assertInvariant(report);
     }
 
@@ -197,7 +198,8 @@ class VerifyPendingJournalsTest {
         verify(accounts, never()).save(alreadySuspended);
         assertEquals(AccountStatus.SUSPENDED, active.status());
         assertEquals(AccountStatus.SUSPENDED, alreadySuspended.status());
-        assertEquals(new SweepReport(1, 0, 1, 0), report);
+        // Only `active` was flipped ACTIVE → SUSPENDED; alreadySuspended was skipped.
+        assertEquals(new SweepReport(1, 0, 1, 0, 1), report);
         assertInvariant(report);
     }
 
@@ -217,7 +219,8 @@ class VerifyPendingJournalsTest {
         verify(accounts).save(active);
         verify(accounts, never()).save(closed);
         assertEquals(AccountStatus.CLOSED, closed.status());
-        assertEquals(new SweepReport(1, 0, 1, 0), report);
+        // Only `active` was flipped; closed was skipped (status != ACTIVE).
+        assertEquals(new SweepReport(1, 0, 1, 0, 1), report);
         assertInvariant(report);
     }
 
@@ -238,7 +241,9 @@ class VerifyPendingJournalsTest {
         verify(accounts, times(1)).save(duplicated);
         verify(accounts, times(1)).findById(other.id());
         verify(accounts, times(1)).save(other);
-        assertEquals(new SweepReport(1, 0, 1, 0), report);
+        // Two distinct accounts flipped ACTIVE → SUSPENDED; duplicate id is
+        // deduplicated by LinkedHashSet, so the cascade count is 2 (not 3).
+        assertEquals(new SweepReport(1, 0, 1, 0, 2), report);
         assertInvariant(report);
     }
 
@@ -259,7 +264,8 @@ class VerifyPendingJournalsTest {
         verify(accounts, times(1)).findById(ghostId);
         assertEquals(AccountStatus.SUSPENDED, real.status());
         assertEquals(VerificationStatus.FAILED, entry.status());
-        assertEquals(new SweepReport(1, 0, 1, 0), report);
+        // Only `real` was flipped; the missing account contributed 0 to the cascade.
+        assertEquals(new SweepReport(1, 0, 1, 0, 1), report);
         assertInvariant(report);
     }
 
@@ -284,7 +290,8 @@ class VerifyPendingJournalsTest {
         assertEquals(VerificationStatus.VERIFIED, j1.status());
         assertEquals(VerificationStatus.PENDING, j2.status());
         assertEquals(VerificationStatus.VERIFIED, j3.status());
-        assertEquals(new SweepReport(3, 2, 0, 1), report);
+        // No FAILED journals this tick → no cascade suspensions.
+        assertEquals(new SweepReport(3, 2, 0, 1, 0), report);
         assertInvariant(report);
     }
 

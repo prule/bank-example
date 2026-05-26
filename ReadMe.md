@@ -110,6 +110,43 @@ Returns:
 
 Account responses carry their own `_links` (`self`, `transfers`) so a client holding an account can move money without consulting the contract again. HAL clients should send `Accept: application/hal+json`; naive clients get plain `application/json` with the same body.
 
+## Observability
+
+The running service exposes Prometheus-format metrics at `/actuator/prometheus`, alongside the standard `/actuator/health`, `/actuator/info`, and `/actuator/metrics` endpoints. A Docker Compose stack under `infrastructure/observability/` brings up Prometheus and Grafana pre-wired to scrape it and render a `Bank Core` dashboard.
+
+Launch the stack (with the app already running on the host on port 8080):
+
+```bash
+docker compose -f infrastructure/observability/docker-compose.yaml up -d
+```
+
+- **Prometheus** — `http://localhost:9090` (`/targets` shows `bank-core` as `UP`).
+- **Grafana** — `http://localhost:3000` (default first-login `admin` / `admin`; prompts to change). The `Bank Core` dashboard is pre-provisioned with panels for JVM, HTTP, transfer outcome, lock acquisition, journal verification, pending journals, and account suspension.
+
+Tear down:
+
+```bash
+docker compose -f infrastructure/observability/docker-compose.yaml down
+```
+
+Custom metrics emitted by the app:
+
+| Metric | Type | Tags |
+| --- | --- | --- |
+| `bank_transfer_executed_total` | counter | `outcome=success\|insufficient_funds\|account_suspended\|lock_timeout` |
+| `bank_transfer_duration_seconds` | timer | — |
+| `bank_lock_acquisition_seconds` | timer | `strategy=jvm\|db` |
+| `bank_journal_verification_total` | counter | `outcome=verified\|failed` |
+| `bank_journal_pending` | gauge | — |
+| `bank_balance_drift_detected_total` | counter | — |
+| `bank_account_suspended_total` | counter | `cause=drift\|journal_failure` |
+
+All metric tags draw from closed enums — no account number, journal id, or other user-controlled value enters the tag set (cardinality is bounded). See `openspec/specs/metrics-exposure/spec.md` for the wire-shape requirements and `openspec/specs/observability-stack/spec.md` for the stack contract.
+
+**Linux note**: Prometheus inside the compose network reaches the host app at `host.docker.internal`. On macOS and Windows this name resolves natively; on Linux the compose file's `extra_hosts: ["host.docker.internal:host-gateway"]` line provides the same mapping. No app-side change is needed.
+
+The actuator endpoints are exposed without authentication — same posture as `/actuator/health` today. The study app runs on localhost; production-style hardening is out of scope.
+
 ## How to read this repo
 
 If you want the business picture: `REQUIREMENTS.md`.

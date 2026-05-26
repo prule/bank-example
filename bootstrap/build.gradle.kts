@@ -12,6 +12,10 @@ dependencies {
     implementation(project(":domain"))
 
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    // Micrometer Prometheus registry — Spring Boot auto-configures
+    // /actuator/prometheus once this is on the classpath. Version managed
+    // by the spring-boot-dependencies BOM applied in the root build.
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     implementation("org.flywaydb:flyway-core")
     implementation("com.h2database:h2")
 
