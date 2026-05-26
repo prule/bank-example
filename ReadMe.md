@@ -44,7 +44,7 @@ The original implementation, written by prompting Google Gemini in a web browser
 
 The output is a working Spring Boot service that covers all five core concepts above. The code reads like a textbook tutorial in places: chatty comments, repeated patterns, scattered logic across services, scheduled jobs that mix orchestration with business decisions. It works and the tests pass. It is also a useful baseline for what an unguided web-browser AI session looks like.
 
-### `v2-sdd` — Spec-driven from generated specs
+### `v2-openspec-claude` — Spec-driven from generated specs
 
 Starting from `v1-basic`, Claude was used to derive specification documents:
 
