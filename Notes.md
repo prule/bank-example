@@ -39,4 +39,4 @@
 
 ...
 
-I'm using Claude to commit changes, since I think it 
+When implementing hateoas, the first design it used didn't use the spring hateoas framework. So after that I had to  
