@@ -37,3 +37,9 @@ bank-core:
     tcp-server:
       enabled: false
       port: 9092
+
+bank:
+  transfer:
+    locker: jvm
+    lock-wait-ms: 5000
+

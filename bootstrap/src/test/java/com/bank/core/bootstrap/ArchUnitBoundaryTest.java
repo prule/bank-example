@@ -55,4 +55,14 @@ public class ArchUnitBoundaryTest {
                 .should().resideInAPackage("com.bank.core.infrastructure.persistence..");
         rule.check(javaClasses);
     }
+
+    @Test
+    public void testExclusiveLockingPrimitivesConfinedToInfrastructureConcurrency() {
+        ArchRule rule = noClasses()
+                .that().resideOutsideOfPackage("com.bank.core.infrastructure.concurrency..")
+                .should().dependOnClassesThat().haveNameMatching(
+                        "(java\\.util\\.concurrent\\.locks\\.ReentrantLock|org\\.springframework\\.transaction\\.support\\.TransactionSynchronizationManager)"
+                );
+        rule.check(javaClasses);
+    }
 }

@@ -1,9 +1,5 @@
-# Transfer Locking
+## MODIFIED Requirements
 
-## Purpose
-
-Concurrency contract for the transfer path. Two transfers that touch the same pair of accounts in opposite directions must never deadlock, must serialise into a defined order, and must never produce incorrect balances under contention.
-## Requirements
 ### Requirement: Canonical lock order by account number
 
 Before mutating two accounts in one transfer, the operation SHALL acquire an exclusive write lock on each account. Locks SHALL be acquired in a canonical order determined purely by a deterministic comparison of the two `AccountNumber` string values (lower account number first by `String.compareTo`), and never by the order in which the caller provided them. When both arguments refer to the same account (`a.equals(b)`), the locker SHALL acquire the single lock once and proceed.
@@ -143,4 +139,3 @@ The `DbAccountLocker` SHALL serve as the canonical lock arbiter across all appli
 #### Scenario: Multi-instance correctness is structurally guaranteed
 - **WHEN** the production source of `DbAccountLocker` is inspected
 - **THEN** the lock-acquisition SQL is parameterised on `account_number` (a column whose value is identical across all JVMs reading the same row); the canonical-order clause (`ORDER BY account_number`) is part of the SQL string (not a JVM-local data structure); no in-memory `Map`, `Set`, or `Lock` is used to track acquired locks (verifiable by `grep -E 'ConcurrentHashMap|HashMap|Lock|Semaphore' DbAccountLocker.java` returning zero matches); the multi-instance correctness story therefore reduces to "every JVM issues the same SQL against the same DB" — which is the canonical multi-instance correctness guarantee a row-locking database provides
-

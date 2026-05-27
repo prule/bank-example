@@ -17,3 +17,8 @@ bank-core:
   h2:
     tcp-server:
       enabled: false
+
+bank:
+  transfer:
+    lock-wait-ms: 500
+
