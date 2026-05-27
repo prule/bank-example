@@ -17,6 +17,7 @@ import com.bank.core.application.ledger.JournalEntries;
 import com.bank.core.application.concurrency.AccountLocker;
 import com.bank.core.application.transfer.TransferFunds;
 import org.springframework.beans.factory.annotation.Value;
+import com.bank.core.application.ledger.VerifyPendingJournals;
 
 @SpringBootApplication(scanBasePackages = "com.bank.core")
 @EnableJpaRepositories(basePackages = "com.bank.core")
@@ -43,5 +44,10 @@ public class BankCoreApplication {
     public OpenAccount openAccount(Accounts accounts, TransferFunds transferFunds,
                                    @Value("${bank.clearing-account.number:CLEARING-000}") String clearingAccountNumber) {
         return new OpenAccount(accounts, transferFunds, clearingAccountNumber);
+    }
+
+    @Bean
+    public VerifyPendingJournals verifyPendingJournals(JournalEntries journalEntries, Accounts accounts) {
+        return new VerifyPendingJournals(journalEntries, accounts);
     }
 }
