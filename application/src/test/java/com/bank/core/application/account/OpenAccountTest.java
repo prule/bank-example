@@ -201,6 +201,21 @@ public class OpenAccountTest {
         public boolean isBalanced(JournalEntryId id) {
             return true;
         }
+
+        @Override
+        public long currentCeiling() {
+            return 0;
+        }
+
+        @Override
+        public List<AccountId> distinctAccountIdsInWindow(long floor, long ceiling) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public java.math.BigDecimal sumSignedAmountForAccount(AccountId id) {
+            return java.math.BigDecimal.ZERO;
+        }
     }
 
     private static class FakeAccountLocker implements AccountLocker {

@@ -18,6 +18,8 @@ import com.bank.core.application.concurrency.AccountLocker;
 import com.bank.core.application.transfer.TransferFunds;
 import org.springframework.beans.factory.annotation.Value;
 import com.bank.core.application.ledger.VerifyPendingJournals;
+import com.bank.core.application.ledger.AuditCheckpoints;
+import com.bank.core.application.account.DetectBalanceDrift;
 
 @SpringBootApplication(scanBasePackages = "com.bank.core")
 @EnableJpaRepositories(basePackages = "com.bank.core")
@@ -49,5 +51,10 @@ public class BankCoreApplication {
     @Bean
     public VerifyPendingJournals verifyPendingJournals(JournalEntries journalEntries, Accounts accounts) {
         return new VerifyPendingJournals(journalEntries, accounts);
+    }
+
+    @Bean
+    public DetectBalanceDrift detectBalanceDrift(AuditCheckpoints checkpoints, JournalEntries journalEntries, Accounts accounts) {
+        return new DetectBalanceDrift(checkpoints, journalEntries, accounts);
     }
 }

@@ -261,6 +261,21 @@ public class VerifyPendingJournalsTest {
             }
             return balancedMap.getOrDefault(id, false);
         }
+
+        @Override
+        public long currentCeiling() {
+            return 0;
+        }
+
+        @Override
+        public List<com.bank.core.domain.AccountId> distinctAccountIdsInWindow(long floor, long ceiling) {
+            return Collections.emptyList();
+        }
+
+        @Override
+        public java.math.BigDecimal sumSignedAmountForAccount(com.bank.core.domain.AccountId id) {
+            return java.math.BigDecimal.ZERO;
+        }
     }
 
     private static class FakeAccounts implements Accounts {

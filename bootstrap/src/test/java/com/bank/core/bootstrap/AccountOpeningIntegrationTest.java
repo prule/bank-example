@@ -92,6 +92,21 @@ public class AccountOpeningIntegrationTest {
         public boolean isBalanced(JournalEntryId id) {
             return delegate.isBalanced(id);
         }
+
+        @Override
+        public long currentCeiling() {
+            return delegate.currentCeiling();
+        }
+
+        @Override
+        public List<com.bank.core.domain.AccountId> distinctAccountIdsInWindow(long floor, long ceiling) {
+            return delegate.distinctAccountIdsInWindow(floor, ceiling);
+        }
+
+        @Override
+        public java.math.BigDecimal sumSignedAmountForAccount(com.bank.core.domain.AccountId id) {
+            return delegate.sumSignedAmountForAccount(id);
+        }
     }
 
     @BeforeEach

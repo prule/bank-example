@@ -5,6 +5,7 @@ import com.bank.core.domain.*;
 import com.bank.core.infrastructure.persistence.account.AccountEntity;
 import com.bank.core.infrastructure.persistence.account.AccountRepository;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,10 +19,12 @@ import java.util.stream.Collectors;
 public class JournalEntriesJpaAdapter implements JournalEntries {
     private final JournalEntryRepository journalEntryRepository;
     private final AccountRepository accountRepository;
+    private final JdbcTemplate jdbcTemplate;
 
-    public JournalEntriesJpaAdapter(JournalEntryRepository journalEntryRepository, AccountRepository accountRepository) {
+    public JournalEntriesJpaAdapter(JournalEntryRepository journalEntryRepository, AccountRepository accountRepository, JdbcTemplate jdbcTemplate) {
         this.journalEntryRepository = journalEntryRepository;
         this.accountRepository = accountRepository;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     @Override
@@ -96,5 +99,34 @@ public class JournalEntriesJpaAdapter implements JournalEntries {
                 entity.getStatus(),
                 movements
         );
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public long currentCeiling() {
+        Long result = jdbcTemplate.queryForObject("SELECT COALESCE(MAX(id), 0) FROM ledger_movement", Long.class);
+        return result != null ? result : 0L;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<com.bank.core.domain.AccountId> distinctAccountIdsInWindow(long floor, long ceiling) {
+        List<String> ids = jdbcTemplate.queryForList(
+                "SELECT DISTINCT a.id FROM ledger_movement m JOIN account a ON m.account_number = a.account_number WHERE m.id > ? AND m.id <= ?",
+                String.class, floor, ceiling
+        );
+        return ids.stream()
+                .map(com.bank.core.domain.AccountId::fromString)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public BigDecimal sumSignedAmountForAccount(com.bank.core.domain.AccountId id) {
+        BigDecimal sum = jdbcTemplate.queryForObject(
+                "SELECT COALESCE(SUM(CASE WHEN m.type = 'CREDIT' THEN m.amount ELSE -m.amount END), 0) FROM ledger_movement m JOIN account a ON m.account_number = a.account_number WHERE a.id = ?",
+                BigDecimal.class, id.toString()
+        );
+        return sum != null ? sum : BigDecimal.ZERO;
     }
 }

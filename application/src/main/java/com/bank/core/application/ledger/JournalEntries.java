@@ -12,4 +12,7 @@ public interface JournalEntries {
     Optional<JournalEntry> findById(JournalEntryId id);
     List<JournalEntry> findByStatus(VerificationStatus status, int limit);
     boolean isBalanced(JournalEntryId id);
+    long currentCeiling();
+    List<com.bank.core.domain.AccountId> distinctAccountIdsInWindow(long floor, long ceiling);
+    java.math.BigDecimal sumSignedAmountForAccount(com.bank.core.domain.AccountId id);
 }
