@@ -1,6 +1,6 @@
 get:
   summary: Look up an account by its number
-  operationId: getAccountByNumber
+  operationId: lookupAccount
   tags:
     - Accounts
   parameters:

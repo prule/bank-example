@@ -38,10 +38,17 @@ public class TransferLockingIntegrationTest {
     @Autowired
     private PlatformTransactionManager transactionManager;
 
+    @Autowired
+    private org.springframework.jdbc.core.JdbcTemplate jdbcTemplate;
+
     private TransactionTemplate transactionTemplate;
 
     @BeforeEach
     public void setUp() {
+        jdbcTemplate.execute("DELETE FROM ledger_movement");
+        jdbcTemplate.execute("DELETE FROM journal_entry");
+        jdbcTemplate.execute("DELETE FROM account");
+
         transactionTemplate = new TransactionTemplate(transactionManager);
         
         // Seed some account entities

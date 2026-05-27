@@ -29,7 +29,7 @@ public class JournalEntriesJpaAdapter implements JournalEntries {
     public void save(JournalEntry journalEntry) {
         List<LedgerMovementEntity> movements = journalEntry.getMovements().stream()
                 .map(m -> {
-                    AccountEntity accountEntity = accountRepository.findByUuid(m.accountId().toString())
+                    AccountEntity accountEntity = accountRepository.findById(m.accountId().toString())
                             .orElseThrow(() -> new IllegalArgumentException("Account not found for ID: " + m.accountId()));
                     return new LedgerMovementEntity(
                             accountEntity.getAccountNumber(),

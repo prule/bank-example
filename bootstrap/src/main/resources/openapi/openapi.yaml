@@ -16,3 +16,5 @@ components:
       $ref: './schemas/account-response.yaml'
     TransferRequest:
       $ref: './schemas/transfer-request.yaml'
+    Link:
+      $ref: './schemas/link.yaml'

@@ -3,14 +3,27 @@ required:
   - accountNumber
   - balance
   - status
+  - _links
 properties:
   accountNumber:
     type: string
   balance:
-    type: number
+    type: string
+    pattern: '^\d+\.\d{2}$'
   status:
     type: string
     enum:
       - ACTIVE
       - SUSPENDED
       - CLOSED
+  _links:
+    type: object
+    required:
+      - self
+      - transfers
+    properties:
+      self:
+        $ref: './link.yaml'
+      transfers:
+        $ref: './link.yaml'
+

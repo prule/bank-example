@@ -9,11 +9,11 @@ import java.time.Instant;
 @Table(name = "account")
 public class AccountEntity {
     @Id
-    @Column(name = "account_number", nullable = false)
-    private String accountNumber;
-
-    @Column(name = "id", nullable = false, unique = true)
+    @Column(name = "id", nullable = false)
     private String id; // AccountId UUID string
+
+    @Column(name = "account_number", nullable = false, unique = true)
+    private String accountNumber;
 
     @Column(name = "balance", nullable = false)
     private BigDecimal balance;

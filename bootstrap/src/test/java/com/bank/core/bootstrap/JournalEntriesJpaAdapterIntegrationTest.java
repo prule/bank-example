@@ -41,6 +41,10 @@ public class JournalEntriesJpaAdapterIntegrationTest {
 
     @BeforeEach
     public void setUp() {
+        jdbcTemplate.execute("DELETE FROM ledger_movement");
+        jdbcTemplate.execute("DELETE FROM journal_entry");
+        jdbcTemplate.execute("DELETE FROM account");
+
         accountId1 = AccountId.generate();
         accountId2 = AccountId.generate();
 

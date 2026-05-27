@@ -21,6 +21,7 @@ dependencies {
     runtimeOnly("com.h2database:h2")
 
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-hateoas")
     implementation("io.swagger.core.v3:swagger-annotations:2.2.22")
     implementation("io.swagger.parser.v3:swagger-parser:2.1.22")
 }

@@ -1,9 +1,5 @@
-# Account Lookup
+## MODIFIED Requirements
 
-## Purpose
-
-Read-only HTTP endpoint that returns the current state of a single account, addressed by its account number. The endpoint is idempotent and never mutates state. Also lands the foundational account persistence (table, JPA entity, repository, mapper, adapter, application port) consumed by F06 (fund transfer), F08 (account opening), F09 (dev data seeding), and F11 (balance drift detection).
-## Requirements
 ### Requirement: GET endpoint returns account state
 
 The service SHALL expose `GET /api/v1/accounts/{accountNumber}` returning HTTP `200` with a body containing exactly the fields `accountNumber` (string), `balance` (string, decimal with exactly two fraction digits, matching the regex `^\d+\.\d{2}$`), `status` (string, one of `ACTIVE`, `SUSPENDED`, `CLOSED`), and `_links` (HAL link map per [[hateoas-discovery]]). `_links` SHALL contain at minimum the relations `self` (pointing at `/api/v1/accounts/{accountNumber}`) and `transfers` (pointing at `/api/v1/transfers`). The response body SHALL match the `AccountResponse` schema declared in the OpenAPI contract exactly — no extra fields, no missing required fields. The endpoint is generated from the OpenAPI contract; the controller SHALL implement the generated `AccountsApi.lookupAccount(...)` interface and SHALL NOT define its own method signature.
@@ -142,4 +138,3 @@ The pure-domain `Account` class SHALL expose a `public static rehydrate(AccountI
 #### Scenario: Handler reuses the same mapping for every resource type
 - **WHEN** a different capability (future) throws `ResourceNotFoundException("journal", id)` for a missing journal
 - **THEN** the same `GlobalExceptionHandler` entry produces a 404 with `code = RESOURCE_NOT_FOUND` and a message naming `"journal"` and the id; no per-resource-type handler entry is needed
-

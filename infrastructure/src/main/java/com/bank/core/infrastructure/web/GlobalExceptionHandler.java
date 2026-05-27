@@ -4,6 +4,7 @@ import com.bank.core.domain.AccountInactiveException;
 import com.bank.core.domain.IllegalStatusTransitionException;
 import com.bank.core.domain.InsufficientFundsException;
 import com.bank.core.domain.InvalidAmountException;
+import com.bank.core.domain.ResourceNotFoundException;
 import com.bank.core.dto.ErrorEnvelope;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -107,6 +108,18 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 OffsetDateTime.now()
         );
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(envelope);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<ErrorEnvelope> handleResourceNotFound(ResourceNotFoundException ex) {
+        log.info("Resource not found: type={}, identifier={}", ex.resourceType(), ex.identifier());
+
+        ErrorEnvelope envelope = new ErrorEnvelope(
+                ErrorEnvelope.CodeEnum.RESOURCE_NOT_FOUND,
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(envelope);
     }
 
     @ExceptionHandler(Exception.class)

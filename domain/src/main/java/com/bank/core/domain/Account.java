@@ -78,4 +78,21 @@ public final class Account {
     public AccountStatus getStatus() {
         return status;
     }
+
+    /**
+     * Rehydrates an Account aggregate from persisted state.
+     * <p>
+     * WARNING: This factory is strictly for the persistence mapper
+     * ({@code com.bank.core.infrastructure.persistence.account.AccountMapper})
+     * and MUST NOT be called by application services or controller code.
+     * Bypasses the aggregate creation lifecycle invariants.
+     */
+    public static Account rehydrate(AccountId id, String number, Money balance, AccountStatus status) {
+        return new Account(
+            Objects.requireNonNull(id, "Account ID must not be null"),
+            Objects.requireNonNull(number, "Account number must not be null"),
+            Objects.requireNonNull(balance, "Balance must not be null"),
+            Objects.requireNonNull(status, "Status must not be null")
+        );
+    }
 }
