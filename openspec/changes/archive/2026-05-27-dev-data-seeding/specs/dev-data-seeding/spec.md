@@ -1,9 +1,5 @@
-# Dev Data Seeding
+## MODIFIED Requirements
 
-## Purpose
-
-On startup, optionally bootstrap the database with a small known set of accounts so developers and tests have realistic data to hit immediately. Seeding is environment-gated, idempotent, and never runs in production by default.
-## Requirements
 ### Requirement: Seeding is gated by an environment-controlled switch
 Seeding SHALL run only when the property `bank.seed.enabled` resolves to `true`. The property SHALL be settable from `application*.yaml`, from `--bank.seed.enabled=true` on the command line, from the `BANK_SEED_ENABLED` environment variable via Spring's standard relaxed binding, and from `SEED_DATA=true` via an explicit alias registered by a bootstrap `EnvironmentPostProcessor` (the alias maps `SEED_DATA` onto `bank.seed.enabled` with low precedence so any explicit `application*.yaml` value wins). When the property is absent or resolves to `false`, the seeding component SHALL NOT be constructed: the `SeedDataRunner` bean, the `SeedData` bean, and the `SeedPlan` bean SHALL all be absent from the Spring `ApplicationContext`, the seeding component SHALL produce no log lines during startup or runtime, and SHALL perform no reads or writes against the `account`, `journal_entry`, or `ledger_movement` tables.
 
@@ -88,4 +84,3 @@ When `bank.seed.enabled=true` AND seeding fails partway through (e.g. the [[fund
 #### Scenario: Runtime failure during clearing-account save aborts startup before any customer is touched
 - **WHEN** `bank.seed.enabled=true`, the database is empty, and `accounts.save(clearingAccount)` throws (e.g. JDBC connection drop)
 - **THEN** no `account` row exists for the clearing account after the failure; no `OpensAccount.open(...)` call has been made for any customer; the runner emits one ERROR line whose message contains the clearing-account number and the exception class; `SpringApplication.run(...)` throws
-

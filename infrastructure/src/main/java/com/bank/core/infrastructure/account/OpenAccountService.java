@@ -2,6 +2,7 @@ package com.bank.core.infrastructure.account;
 
 import com.bank.core.application.account.OpenAccount;
 import com.bank.core.application.account.OpenAccountCommand;
+import com.bank.core.application.account.OpensAccount;
 import com.bank.core.domain.Account;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,7 +14,7 @@ import java.util.Objects;
  */
 @Service
 @Transactional
-public class OpenAccountService {
+public class OpenAccountService implements OpensAccount {
     private final OpenAccount openAccount;
 
     public OpenAccountService(OpenAccount openAccount) {
