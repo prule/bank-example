@@ -12,9 +12,11 @@ import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.context.annotation.Bean;
 import java.time.Clock;
 import com.bank.core.application.account.Accounts;
+import com.bank.core.application.account.OpenAccount;
 import com.bank.core.application.ledger.JournalEntries;
 import com.bank.core.application.concurrency.AccountLocker;
 import com.bank.core.application.transfer.TransferFunds;
+import org.springframework.beans.factory.annotation.Value;
 
 @SpringBootApplication(scanBasePackages = "com.bank.core")
 @EnableJpaRepositories(basePackages = "com.bank.core")
@@ -35,5 +37,11 @@ public class BankCoreApplication {
     @Bean
     public TransferFunds transferFunds(Accounts accounts, JournalEntries journalEntries, AccountLocker locker, Clock clock) {
         return new TransferFunds(accounts, journalEntries, locker, clock);
+    }
+
+    @Bean
+    public OpenAccount openAccount(Accounts accounts, TransferFunds transferFunds,
+                                   @Value("${bank.clearing-account.number:CLEARING-000}") String clearingAccountNumber) {
+        return new OpenAccount(accounts, transferFunds, clearingAccountNumber);
     }
 }

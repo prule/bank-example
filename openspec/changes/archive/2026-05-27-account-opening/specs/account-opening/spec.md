@@ -1,9 +1,5 @@
-# Account Opening
+## MODIFIED Requirements
 
-## Purpose
-
-Mechanism for creating a new customer account and, optionally, funding it with an opening balance. Funding always flows from the bank-owned **clearing account** through the standard transfer path (per [[fund-transfer]]), so that no money ever appears in the system without a corresponding ledger entry. The opening operation is internal — no HTTP endpoint — and runs inside a single transactional boundary owned by `OpenAccountService` so create + fund is atomic.
-## Requirements
 ### Requirement: Open account with explicit account number and opening balance
 
 The system SHALL expose an internal account-opening operation (no HTTP endpoint in this change) that accepts a chosen `AccountNumber` and a non-null `Money` opening balance. A zero opening balance SHALL be accepted; a negative opening balance SHALL be rejected by the `Money` invariant per [[account-domain]] before the operation runs. The new account SHALL be created with the chosen account number, status `ACTIVE`, and balance zero before any funding step. The operation SHALL be invoked through `OpenAccountCommand(AccountNumber number, Money openingBalance)` and SHALL return the post-funding `Account` aggregate (reloaded from the [[account-lookup]] `Accounts` port so the returned `balance` reflects any funding transfer that committed).
@@ -140,4 +136,3 @@ The `OpenAccount` class in `com.bank.core.application.account` SHALL be a plain 
 
 - **WHEN** `new ClearingAccountMissingException(AccountNumber.of("CLEARING-000"))` is constructed
 - **THEN** `getMessage()` contains the substring `"CLEARING-000"`, `clearingAccountNumber()` returns `AccountNumber.of("CLEARING-000")`, and the class extends `com.bank.core.domain.DomainException`
-
