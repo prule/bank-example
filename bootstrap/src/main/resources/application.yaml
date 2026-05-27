@@ -1,0 +1,34 @@
+spring:
+  application:
+    name: bank-core
+  datasource:
+    url: jdbc:h2:mem:bankcore;DB_CLOSE_DELAY=-1
+    username: sa
+    password: ""
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        format_sql: true
+    show-sql: true
+  h2:
+    console:
+      enabled: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: always
+
+bank-core:
+  h2:
+    tcp-server:
+      enabled: false
+      port: 9092

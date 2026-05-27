@@ -1,0 +1,13 @@
+type: object
+required:
+  - sourceAccountNumber
+  - destinationAccountNumber
+  - amount
+properties:
+  sourceAccountNumber:
+    type: string
+  destinationAccountNumber:
+    type: string
+  amount:
+    type: number
+    minimum: 0.01

@@ -1,0 +1,24 @@
+get:
+  summary: Look up an account by its number
+  operationId: getAccountByNumber
+  tags:
+    - Accounts
+  parameters:
+    - name: accountNumber
+      in: path
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Account details retrieved successfully
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/account-response.yaml'
+    '404':
+      description: Account not found
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/error-envelope.yaml'

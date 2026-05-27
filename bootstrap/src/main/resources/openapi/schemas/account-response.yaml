@@ -1,0 +1,16 @@
+type: object
+required:
+  - accountNumber
+  - balance
+  - status
+properties:
+  accountNumber:
+    type: string
+  balance:
+    type: number
+  status:
+    type: string
+    enum:
+      - ACTIVE
+      - SUSPENDED
+      - CLOSED

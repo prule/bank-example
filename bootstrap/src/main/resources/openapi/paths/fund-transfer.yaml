@@ -1,0 +1,26 @@
+post:
+  summary: Transfer funds between accounts
+  operationId: transferFunds
+  tags:
+    - Transfers
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: '../schemas/transfer-request.yaml'
+  responses:
+    '204':
+      description: Funds transferred successfully
+    '400':
+      description: Invalid request payload or business validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/error-envelope.yaml'
+    '422':
+      description: Unprocessable request, such as insufficient funds
+      content:
+        application/json:
+          schema:
+            $ref: '../schemas/error-envelope.yaml'

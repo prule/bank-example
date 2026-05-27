@@ -1,0 +1,18 @@
+openapi: 3.0.3
+info:
+  title: Bank Core API
+  version: 1.0.0
+  description: Core double-entry banking ledger API.
+paths:
+  /api/v1/accounts/{accountNumber}:
+    $ref: './paths/account-lookup.yaml'
+  /api/v1/transfers:
+    $ref: './paths/fund-transfer.yaml'
+components:
+  schemas:
+    ErrorEnvelope:
+      $ref: './schemas/error-envelope.yaml'
+    AccountResponse:
+      $ref: './schemas/account-response.yaml'
+    TransferRequest:
+      $ref: './schemas/transfer-request.yaml'
