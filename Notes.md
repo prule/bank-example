@@ -29,7 +29,7 @@
 * propose/apply/archive immutable-ledger
 * Interesting that `transfer-locking` didn't have db tables at that time so implemented locking without db. Perhaps should break down differently to get db set up earlier.
 
-...
+... propose/apply/archive all of the features
 
 * propose/apply/archive dev-data-seeding
   * Needed to prompt:
@@ -39,4 +39,28 @@
 
 ...
 
-When implementing hateoas, the first design it used didn't use the spring hateoas framework. So after that I had to  
+At some point I asked it to implement observability with
+```text
+/opsx:propose add observability to the application using prometheus and graphana.
+```
+[spec.md](openspec/specs/observability-stack/spec.md)
+[spec.md](openspec/specs/metrics-exposure/spec.md)
+
+and so that I could actually see some load, [spec.md](openspec/specs/load-generator/spec.md)
+
+This all went well, with it emitting metrics and giving me a graphana dashboard effortlessly.
+
+---
+
+When implementing hateoas, the first design it used didn't use the spring hateoas framework. So after that I had to propose that it did. It worked well, and is now part of the `hateoas-discovery` [spec.md](openspec/specs/hateoas-discovery/spec.md)
+
+This is a good example of being able to shape things after they are done, and have them baked back into the main specification for future reference.
+
+After completing everything I asked what else could be done and it produced [Todo.md](Todo.md). This is a good list, and I got it to implement `transfer-idempotency`.
+
+
+---
+
+The code seems to be nicely organised, the domain classes look good, clean architecture implemented well and checked with ArchUnit, Hateoas with spring and contract first with openapi.
+
+`DbAccountLocker` is an interesting implementation I'm not sure about.
