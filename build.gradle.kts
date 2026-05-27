@@ -28,7 +28,7 @@ dependencies {
 //    runtimeOnly("org.postgresql:postgresql") // Production ready storage
 
     // OpenAPI Generation Dependencies
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17")
     implementation("org.openapitools:jackson-databind-nullable:0.2.6")
 
     // Testing
