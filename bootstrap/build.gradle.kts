@@ -12,6 +12,9 @@ dependencyManagement {
 
 dependencies {
     implementation(project(":infrastructure"))
+    implementation(project(":domain"))
+    implementation(project(":application"))
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
 
     implementation("org.springframework.boot:spring-boot-starter-web")
     implementation("org.springframework.boot:spring-boot-starter-actuator")

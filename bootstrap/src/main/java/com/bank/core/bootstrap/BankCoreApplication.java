@@ -5,7 +5,12 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+
 @SpringBootApplication(scanBasePackages = "com.bank.core")
+@EnableJpaRepositories(basePackages = "com.bank.core")
+@EntityScan(basePackages = "com.bank.core")
 @EnableScheduling
 @EnableAsync
 public class BankCoreApplication {
