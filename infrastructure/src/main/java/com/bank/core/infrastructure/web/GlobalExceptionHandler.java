@@ -5,6 +5,7 @@ import com.bank.core.domain.IllegalStatusTransitionException;
 import com.bank.core.domain.InsufficientFundsException;
 import com.bank.core.domain.InvalidAmountException;
 import com.bank.core.domain.ResourceNotFoundException;
+import com.bank.core.domain.SameAccountTransferException;
 import com.bank.core.dto.ErrorEnvelope;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
@@ -72,6 +73,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(InsufficientFundsException.class)
     public ResponseEntity<ErrorEnvelope> handleInsufficientFunds(InsufficientFundsException ex) {
+        log.info("Insufficient funds exception: {}", ex.getMessage());
         ErrorEnvelope envelope = new ErrorEnvelope(
                 ErrorEnvelope.CodeEnum.INSUFFICIENT_FUNDS,
                 ex.getMessage(),
@@ -82,8 +84,20 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(AccountInactiveException.class)
     public ResponseEntity<ErrorEnvelope> handleAccountInactive(AccountInactiveException ex) {
+        log.info("Account inactive exception: {}", ex.getMessage());
         ErrorEnvelope envelope = new ErrorEnvelope(
                 ErrorEnvelope.CodeEnum.ACCOUNT_INACTIVE,
+                ex.getMessage(),
+                OffsetDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(envelope);
+    }
+
+    @ExceptionHandler(SameAccountTransferException.class)
+    public ResponseEntity<ErrorEnvelope> handleSameAccountTransfer(SameAccountTransferException ex) {
+        log.info("Same account transfer exception: {}", ex.getMessage());
+        ErrorEnvelope envelope = new ErrorEnvelope(
+                ErrorEnvelope.CodeEnum.BAD_REQUEST_PAYLOAD,
                 ex.getMessage(),
                 OffsetDateTime.now()
         );

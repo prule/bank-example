@@ -1,9 +1,5 @@
-# Fund Transfer
+## MODIFIED Requirements
 
-## Purpose
-
-Endpoint that moves a positive amount of money from one Active account to another Active account atomically, producing exactly one balanced journal entry. Either the transfer commits in full or has no observable effect. Composes F05 (`Accounts`), F02 (`JournalEntries`), and F07 (`AccountLocker`) inside a single transactional boundary that lives on the controller.
-## Requirements
 ### Requirement: POST endpoint accepts source, destination, amount
 
 The service SHALL expose `POST /api/v1/transfers` accepting a JSON body with required fields `sourceAccountNumber` (string, `minLength: 1`), `destinationAccountNumber` (string, `minLength: 1`), and `amount` (number, `minimum: 0.01`). On success the response SHALL be HTTP `204 No Content` with an empty body; callers re-read the affected accounts via [[account-lookup]] for the new balances. The endpoint is generated from the OpenAPI contract; the controller SHALL implement the generated `TransfersApi.createTransfer(...)` interface and SHALL NOT define its own method signature. The path SHALL be declared in the served `/v3/api-docs` document with `operationId: createTransfer`.
@@ -179,4 +175,3 @@ The `TransferController.createTransfer(...)` method SHALL be annotated `@Transac
 
 - **WHEN** the use case throws `SameAccountTransferException(AccountNumber.of("ACC-A"))`
 - **THEN** the F03 handler returns HTTP 400 with body `{"code": "BAD_REQUEST_PAYLOAD", "message": "...ACC-A...", "timestamp": "..."}` and exactly those three fields
-

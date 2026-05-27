@@ -1,9 +1,12 @@
 package com.bank.core.infrastructure.web.transfer;
 
 import com.bank.core.api.TransfersApi;
+import com.bank.core.application.transfer.TransferCommand;
+import com.bank.core.application.transfer.TransferFunds;
+import com.bank.core.domain.Money;
 import com.bank.core.dto.TransferRequest;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RestController;
 
 /**
@@ -13,8 +16,27 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class TransferController implements TransfersApi {
 
+    private final TransferFunds transferFunds;
+
+    public TransferController(TransferFunds transferFunds) {
+        this.transferFunds = transferFunds;
+    }
+
+    /**
+     * Executes a fund transfer operation within a Spring-managed transaction boundary.
+     * Maps the incoming OpenAPI TransferRequest DTO to the domain TransferCommand.
+     */
     @Override
+    @Transactional
     public ResponseEntity<Void> transferFunds(TransferRequest transferRequest) {
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+        TransferCommand command = new TransferCommand(
+                transferRequest.getSourceAccountNumber(),
+                transferRequest.getDestinationAccountNumber(),
+                Money.of(transferRequest.getAmount())
+        );
+
+        transferFunds.transfer(command);
+
+        return ResponseEntity.noContent().build();
     }
 }
