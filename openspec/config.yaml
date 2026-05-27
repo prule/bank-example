@@ -1,0 +1,324 @@
+schema: spec-driven
+
+# Bank Core — project manifest for spec-driven development.
+# Single machine-readable index of every doc, spec, branch, and convention.
+# Humans should read INTRODUCTION.md first; this file is for tooling and agents.
+
+openspec: 1.0
+
+project:
+  name: bank-core
+  description: >
+    A small double-entry bank ledger, rebuilt across branches to compare
+    AI tooling, prompting styles, and engineering disciplines on the same
+    problem.
+  language: java
+  jdk: "25"
+  framework: spring-boot
+  framework_version: "3.3.x"
+  build: gradle-kotlin
+  repository_root: "."
+
+documents:
+  - id: introduction
+    path: INTRODUCTION.md
+    audience: anyone
+    purpose: Project overview, core concepts, branch map, style direction.
+  - id: requirements
+    path: REQUIREMENTS.md
+    audience: stakeholders
+    purpose: High-level business requirements, no implementation detail.
+  - id: specification
+    path: SPECIFICATION.md
+    audience: rebuild-engineer
+    purpose: Full technical specification covering domain, persistence, API, audit.
+  - id: specs-index
+    path: specs/README.md
+    audience: rebuild-engineer
+    purpose: Index of per-feature specs and build order.
+
+branches:
+  - id: v1-basic
+    status: shipped
+    source: gemini-web-browser
+    summary: >
+      Original implementation prompted via Gemini in a browser. Default model
+      style, no skills or harness. Working Spring Boot service covering all
+      five core concepts. Baseline for comparison.
+  - id: v2-sdd
+    status: planned
+    source: claude-spec-driven
+    inputs: [requirements, specification, specs-index]
+    summary: >
+      Rebuild produced only from the generated specs. No reference to v1
+      source. Tests whether precise specs steer an AI agent to cleaner code.
+  - id: v3-clean
+    status: candidate
+    source: human-refactor-on-specs
+    summary: >
+      Same specs, refactored toward the style direction declared in
+      INTRODUCTION.md.
+  - id: v4-kotlin
+    status: candidate
+    summary: Possible Kotlin port to test design portability.
+  - id: v5-hand-coded
+    status: candidate
+    summary: Hand-coded reference implementation for style comparison.
+
+# Five spine concepts every branch must honour.
+core_concepts:
+  - id: contract-first-api
+    summary: OpenAPI document is source of truth; server stubs generated from it.
+    realised_by: [F04]
+  - id: rich-domain-model
+    summary: Business rules live on entities, no public setters, named mutators.
+    realised_by: [F01, F02]
+  - id: deadlock-free-pessimistic-locking
+    summary: Canonical lock order by account number prevents cyclic deadlocks.
+    realised_by: [F07]
+  - id: journal-ledger
+    summary: Immutable double-entry journal; ledger is truth, balance is snapshot.
+    realised_by: [F02, F06]
+  - id: background-auditing
+    summary: Continuous sweepers reconcile pending journals and detect balance drift.
+    realised_by: [F10, F11]
+
+# Per-feature specs. Each is independently buildable; depends_on must ship first.
+# The F-IDs below are historical labels carried forward from the original specs;
+# `path:` now points at the OpenSpec-format capability folder. Legacy F##-*.md
+# drafts are preserved under specs/legacy/ for reference.
+specs:
+  - id: F00
+    title: Project setup
+    path: specs/project-setup/spec.md
+    category: foundation
+    depends_on: []
+    delivers:
+      - Multi-module Gradle (domain, application, infrastructure, bootstrap).
+      - Flyway-managed schema with ddl-auto=validate.
+      - Spring Boot Actuator health endpoint.
+      - ArchUnit boundary tests enforcing module dependency arrows.
+      - Profiles (default, dev, test) with H2 wiring.
+      - Scheduling and async enablement.
+
+  - id: F01
+    title: Account domain rules
+    path: specs/account-domain/spec.md
+    category: foundation
+    depends_on: [F00]
+    delivers:
+      - Account identity, balance, status (Active/Suspended/Closed).
+      - Domain invariants (credit, debit, suspend, reactivate).
+      - InsufficientFundsException, AccountInactiveException.
+
+  - id: F02
+    title: Immutable ledger
+    path: specs/immutable-ledger/spec.md
+    category: foundation
+    depends_on: [F00]
+    delivers:
+      - JournalEntry with verification status (Pending, Verified, Failed).
+      - Ledger movement with monotonic id, write-once.
+      - Database-side balance check (sum == 0) without JVM iteration.
+
+  - id: F03
+    title: API error contract
+    path: specs/api-error-contract/spec.md
+    category: foundation
+    depends_on: [F00, F04]
+    delivers:
+      - Single error envelope { code, message, timestamp }.
+      - Stable code taxonomy and HTTP status mapping.
+      - Catch-all handler that does not leak internals.
+
+  - id: F04
+    title: Contract-first API
+    path: specs/contract-first-api/spec.md
+    category: foundation
+    depends_on: [F00]
+    delivers:
+      - OpenAPI document is the source of truth.
+      - Build-time stub and DTO generation, interfaces only.
+      - Generated package separate from domain.
+      - Docs UI served from the canonical contract.
+
+  - id: F05
+    title: Account lookup API
+    path: specs/account-lookup/spec.md
+    category: capability
+    depends_on: [F00, F01, F03, F04]
+    delivers:
+      - GET /api/v1/accounts/{accountNumber}.
+      - 200 with AccountResponse; 404 RESOURCE_NOT_FOUND.
+
+  - id: F06
+    title: Fund transfer API
+    path: specs/fund-transfer/spec.md
+    category: capability
+    depends_on: [F00, F01, F02, F03, F04, F07]
+    delivers:
+      - POST /api/v1/transfers.
+      - Atomic debit/credit + one balanced journal entry.
+      - 204 on success; mapped error codes on failure.
+
+  - id: F07
+    title: Deadlock-free concurrent transfers
+    path: specs/transfer-locking/spec.md
+    category: capability
+    depends_on: [F00, F01]
+    delivers:
+      - Canonical lock order by account number string.
+      - Single shared lock-acquisition component.
+      - 100-thread counter-direction stress passes without deadlock.
+
+  - id: F08
+    title: Account opening
+    path: specs/account-opening/spec.md
+    category: capability
+    depends_on: [F00, F01, F02, F06]
+    delivers:
+      - Internal account-opening flow.
+      - Initial funding via transfer from system clearing account.
+      - Single transactional boundary across create + fund.
+
+  - id: F09
+    title: Dev data seeding
+    path: specs/dev-data-seeding/spec.md
+    category: capability
+    depends_on: [F00, F08]
+    delivers:
+      - Env-gated startup seed (SEED_DATA).
+      - Clearing account + seeded customer accounts.
+      - Idempotent across restarts.
+
+  - id: F10
+    title: Pending journal reconciliation
+    path: specs/journal-verification/spec.md
+    category: audit
+    depends_on: [F00, F02]
+    delivers:
+      - Periodic sweep of Pending journals (target 10s, page 50).
+      - Database-side balance check; promote or fail.
+      - Suspend every account on a failed journal.
+
+  - id: F11
+    title: Balance drift detection
+    path: specs/balance-drift-detection/spec.md
+    category: audit
+    depends_on: [F00, F01, F02, F06]
+    delivers:
+      - Periodic balance vs ledger audit (target 30s).
+      - Persistent checkpoint over ledger monotonic id.
+      - Captured-ceiling window prevents race with live transfers.
+      - Suspend drifted accounts (clearing account excluded).
+
+build_order:
+  - [F00]
+  - [F03, F04]
+  - [F01, F02]
+  - [F07]
+  - [F05, F06]
+  - [F08, F09]
+  - [F10]
+  - [F11]
+
+# Architectural conventions enforced across all branches from v2 onward.
+conventions:
+  module_layout:
+    type: gradle-multi-module
+    modules:
+      - name: domain
+        allowed_imports: [jdk]
+        forbidden_imports: [spring, jakarta.persistence, hibernate, jackson, openapi-generated]
+        contains: [F01, F02]
+      - name: application
+        allowed_imports: [domain, slf4j]
+        forbidden_imports: [spring (prod sources), jakarta.persistence, web, openapi-generated]
+        contains: [use-cases, ports, commands, results]
+      - name: infrastructure
+        allowed_imports: [application, domain, spring, jpa, web, openapi-generated]
+        contains: [jpa-entities, rest-controllers, schedulers, openapi-generation]
+      - name: bootstrap
+        allowed_imports: [infrastructure, actuator, flyway]
+        contains: [spring-boot-application, profiles, wiring]
+    dependency_direction: "bootstrap -> infrastructure -> application -> domain"
+
+  persistence:
+    schema_owner: flyway
+    ddl_auto: validate
+    migrations_path: bootstrap/src/main/resources/db/migration
+
+  observability:
+    health: spring-boot-actuator
+    health_endpoint: /actuator/health
+
+  testing:
+    framework: junit5
+    boundary_enforcement: archunit
+
+  style_direction:
+    - single-responsibility-classes
+    - command-and-result-objects
+    - orchestration-shells-thin (schedulers/controllers delegate to plain-Java use cases)
+    - clean-architecture-boundaries (dependency arrows point inward)
+    - hateoas-links-in-responses
+    - factual-logging (no marketing-prose log messages)
+
+# Cross-cutting items flagged in spec open-questions that need a decision before v2 ships.
+open_decisions:
+  - id: debit-to-zero
+    where: F01
+    question: >
+      Current rule rejects debits that would leave balance at exactly zero.
+      Bug or feature?
+  - id: account-status-enum-coverage
+    where: F05
+    question: >
+      OpenAPI account-status enum omits CLOSED. Widen schema, or guarantee
+      closed accounts never returned?
+    resolution: >
+      Closed by F05. The OpenAPI AccountResponse.status enum widens to
+      [ACTIVE, SUSPENDED, CLOSED], matching the closed set of values in
+      com.bank.core.domain.AccountStatus. The mapper is a direct name()
+      translation with no special-casing.
+    closed: true
+  - id: idempotency
+    where: F06
+    question: >
+      POST /transfers has no idempotency key. Retried requests duplicate
+      journals. Add idempotency-key header for v2?
+  - id: self-transfer
+    where: F06
+    question: Reject source == destination, or allow as no-op?
+    resolution: >
+      Closed by F06. Reject as 400 BAD_REQUEST_PAYLOAD via the new
+      SameAccountTransferException (domain). Consistent with most banking
+      APIs and avoids ambiguous no-op semantics (a no-op would either
+      produce a self-debit/self-credit journal, which is semantically odd,
+      or silently skip the journal, which creates an audit gap).
+    closed: true
+  - id: lock-wait-timeout
+    where: F07
+    question: Bound for transfer lock wait under contention?
+    resolution: >
+      Closed by F07. Configurable via `bank.transfer.lock-wait-ms` in
+      `application.yaml` (default 5000 ms); the test profile overrides to
+      500 ms in `application-test.yaml` so contention tests fail fast. The
+      `JvmAccountLocker` adapter reads the bound at construction and surfaces
+      a `LockAcquisitionTimeoutException` on expiry.
+    closed: true
+  - id: scheduler-config-externalised
+    where: [F10, F11]
+    question: >
+      Tick interval and page size hardcoded today. Externalise before
+      production.
+  - id: reactivation-playbook
+    where: F11
+    question: >
+      Suspension is automated; reactivation after investigation is not.
+      Define operational procedure before production use.
+  - id: transactional-in-application
+    where: F00
+    question: >
+      Disallow org.springframework.transaction.annotation in application
+      module production sources, or allow as the one Spring exception?

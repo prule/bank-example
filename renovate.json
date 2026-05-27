@@ -1,17 +1,8 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended",
-    ":dependencyDashboard",
-    ":semanticCommits"
+    "config:recommended"
   ],
-  "timezone": "Etc/UTC",
-  "baseBranchPatterns": [
-    "v1-basic",
-    "v2-openspec-claude"
-  ],
-  "useBaseBranchConfig": "merge",
-  "additionalBranchPrefix": "{{baseBranch}}-",
   "prConcurrentLimit": 5,
   "prHourlyLimit": 2,
   "vulnerabilityAlerts": {
@@ -20,11 +11,11 @@
   },
   "packageRules": [
     {
-      "groupName": "spring-boot",
-      "matchPackageNames": [
-        "org.springframework.boot{/,}**",
-        "org.springframework.cloud{/,}**"
-      ]
+      "matchPackagePrefixes": [
+        "org.springframework.boot",
+        "org.springframework.cloud"
+      ],
+      "groupName": "spring-boot"
     },
     {
       "matchManagers": ["github-actions"],
@@ -45,9 +36,9 @@
     {
       "matchPackageNames": [
         "org.mockito:mockito-core",
-        "org.mockito:mockito-junit-jupiter",
-        "net.bytebuddy:{/,}**"
+        "org.mockito:mockito-junit-jupiter"
       ],
+      "matchPackagePrefixes": ["net.bytebuddy:"],
       "dependencyDashboardApproval": true
     },
     {
