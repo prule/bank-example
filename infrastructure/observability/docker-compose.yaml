@@ -27,7 +27,7 @@ services:
       - bank-observability
 
   grafana:
-    image: grafana/grafana:11.4.0
+    image: grafana/grafana:11.6.15
     container_name: bank-core-grafana
     ports:
       - "3000:3000"
