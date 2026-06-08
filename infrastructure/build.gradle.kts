@@ -19,7 +19,7 @@ dependencies {
     implementation("io.micrometer:micrometer-core")
 
     // Used by OpenApiController to load and inline-resolve the canonical contract at startup.
-    implementation("io.swagger.parser.v3:swagger-parser:2.1.22")
+    implementation("io.swagger.parser.v3:swagger-parser:2.1.43")
 
     runtimeOnly("com.h2database:h2")
 

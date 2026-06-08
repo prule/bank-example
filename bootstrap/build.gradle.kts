@@ -27,6 +27,6 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
-    testImplementation("io.swagger.parser.v3:swagger-parser:2.1.22")
+    testImplementation("io.swagger.parser.v3:swagger-parser:2.1.43")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
