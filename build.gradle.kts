@@ -33,6 +33,7 @@ dependencies {
 
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
 
     // junit5
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
