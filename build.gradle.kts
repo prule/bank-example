@@ -1,7 +1,7 @@
 plugins {
     java
     id("org.springframework.boot") version "4.0.6" // Or your preferred stable Spring Boot 3.x version
-    id("io.spring.dependency-management") version "1.1.6"
+    id("io.spring.dependency-management") version "1.1.7"
     id("org.openapi.generator") version "7.22.0"
 }
 
@@ -28,7 +28,7 @@ dependencies {
 //    runtimeOnly("org.postgresql:postgresql") // Production ready storage
 
     // OpenAPI Generation Dependencies
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3")
     implementation("org.openapitools:jackson-databind-nullable:0.2.10")
 
     // Testing
