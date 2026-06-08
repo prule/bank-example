@@ -5,6 +5,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.bank.core.config.JacksonConfig;
 import com.bank.core.dto.TransferRequest;
 import com.bank.core.service.TransferService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -22,7 +23,7 @@ class TransferControllerTest {
 
   @Autowired private MockMvc mockMvc;
 
-  @Autowired private ObjectMapper objectMapper;
+  private ObjectMapper objectMapper = new JacksonConfig().objectMapper();
 
   @MockitoBean
   private TransferService transferService; // Mocks the business layer cleanly
