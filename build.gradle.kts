@@ -29,7 +29,7 @@ dependencies {
 
     // OpenAPI Generation Dependencies
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
-    implementation("org.openapitools:jackson-databind-nullable:0.2.6")
+    implementation("org.openapitools:jackson-databind-nullable:0.2.10")
 
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
