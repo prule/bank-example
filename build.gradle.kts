@@ -2,7 +2,7 @@ plugins {
     java
     id("org.springframework.boot") version "3.5.14" // Or your preferred stable Spring Boot 3.x version
     id("io.spring.dependency-management") version "1.1.6"
-    id("org.openapi.generator") version "7.8.0"
+    id("org.openapi.generator") version "7.22.0"
 }
 
 group = "com.bank"
