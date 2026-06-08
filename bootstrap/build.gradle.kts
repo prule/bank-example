@@ -20,7 +20,7 @@ dependencies {
     implementation("com.h2database:h2")
 
     // Swagger UI under the `dev` profile only — gated by springdoc.swagger-ui.enabled.
-    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.0")
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.17")
 
     testImplementation(project(":domain"))
     testImplementation(project(":application"))
