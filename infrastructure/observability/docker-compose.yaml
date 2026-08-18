@@ -13,7 +13,7 @@
 services:
 
   prometheus:
-    image: prom/prometheus:v3.0.1
+    image: prom/prometheus:v3.14.0
     container_name: bank-core-prometheus
     ports:
       - "9090:9090"
